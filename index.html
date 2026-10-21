@@ -320,10 +320,9 @@ body.mobil #mobil{display:block;max-width:520px;margin:0 auto;padding:0 12px 90p
 </div>
 <div class="testleiste" id="testleiste" style="display:none">
   <b>TESTMODUS</b>
-  <button class="btn" onclick="demoLaden()">Fake-Daten laden</button>
   <label>Ansicht als Rolle <select id="testRolle" onchange="rolleWechseln(this.value)"></select></label>
   <button class="btn sek" onclick="handyTest()">Handy-Ansicht (Vorgesetzter) ein/aus</button>
-  <span class="sub" id="testHinweis">nur zum Ausprobieren – vor dem Echtbetrieb TESTLEISTE = false setzen</span>
+  <span class="sub" id="testHinweis">Testleiste: Rolle und Handy-Ansicht prüfen</span>
 </div>
 <header>
   <button class="menuknopf" onclick="menuUm()" aria-label="Men&uuml;"><span></span><span></span><span></span></button>
@@ -842,7 +841,7 @@ body.mobil #mobil{display:block;max-width:520px;margin:0 auto;padding:0 12px 90p
    FIREBASE-ZUGANGSDATEN - hier die Werte aus der Firebase-Konsole eintragen.
    Solange apiKey leer bleibt, laeuft die Datei rein lokal im Browser.
    ===================================================================== */
-/* Testleiste (Fake-Daten-Knopf + Rollenwechsel). Vor dem Echtbetrieb auf false setzen. */
+/* Testleiste (Rollenwechsel, Handy-Ansicht). Vor dem Echtbetrieb auf false setzen. */
 const TESTLEISTE = true;
 
 const FIREBASE_KONFIG = {
@@ -1946,7 +1945,7 @@ function zeichnePositionen(){
   const kf = sel.value, alle = poSortiert(alleTeile());
   if(!el('poGroesse').querySelector || !el('poGroesse').querySelector('details[open]')) artenZeichnen();
   el('poKennzahlen').innerHTML = kz(alle.length,'Positionen')+kz(alle.filter(t => t.sonstiges).length,'Sonstiges (Freitext)')+kz(alle.filter(t => polymerGVon(t)).length,'mit Polymer-Angabe')+kz(schr.length,'Arbeitsschritte');
-  el('poStandardBtn').style.display = (sw && posUpdateNoetig()) ? '' : 'none';
+  el('poStandardBtn').style.display = sw ? '' : 'none'; el('poStandardBtn').classList.toggle('sek', !posUpdateNoetig());
   if(sw && altPositionen().length) el('poKennzahlen').innerHTML += '<div class="hinweis" style="flex:1 1 100%;background:#FFF4D6;border:1px solid #E4B23C;border-radius:8px;padding:10px 14px"><b>'+altPositionen().length+' alte bzw. entfallene Positionen</b> (z. B. '+esc(altPositionen().slice(0,3).map(t => t.nr||t.name).join(', '))+'). Mit „Standard-Positionen anlegen / aktualisieren“ werden sie entfernt, die Kunden Gossner/LEIPA/Optipack angelegt und alle Nummern 101–1804 aktualisiert.</div>';
   if(!alle.length){ el('poTab').innerHTML = '<tbody><tr><td class="sub" style="padding:18px">Noch keine Positionen. Mit „Standard-Positionen anlegen“ kommen alle Positionen vom Verrechnungsblatt hinein (Arbeitsschritte, Einheiten und Polymer sind vorbelegt und änderbar).</td></tr></tbody>'; return; }
   const liste = alle.filter(t => (!kf || t.kunde === kf) && (!s || (t.nr+' '+t.name+' '+(t.kunde||'')).toLowerCase().includes(s)) &&
@@ -2094,7 +2093,7 @@ function zeichneHistorie(){
     '<tr><td style="position:sticky;left:0;background:#fff;z-index:1"><b>Chargen mindestens (strengerer Wert)</b></td><td class="num" id="hm-sum"></td>'+Array.from({length:n}, (_, i) => '<td class="num" id="hm-'+histTT(i+1)+'"></td>').join('')+'</tr>'+
     '<tr><td style="position:sticky;left:0;background:#fff;z-index:1"><b>Chargen gefahren (Ist)</b></td><td class="num" id="hi-sum"></td>'+Array.from({length:n}, (_, i) => { const v = (doc.chargen||{})[histTT(i+1)]; return '<td style="padding:1px"><input type="number" min="0" data-tt="'+histTT(i+1)+'" value="'+(v===undefined||v===''?'':v)+'" style="width:44px;padding:3px;text-align:right"'+dis+' onchange="histCharge(this)"></td>'; }).join('')+'</tr></tbody></table></div>';
   if(sw){ const frei = Object.values(D.teile).filter(t => !nrs.includes(String(t.nr))); h += '<div class="werkzeuge" style="margin-top:10px"><select id="histPlus"><option value="">Weitere Position in die Tabelle holen …</option>'+poSortiert(frei).map(t => '<option value="'+esc(t.nr)+'">'+esc(t.nr)+' '+esc(t.name)+'</option>').join('')+'</select><button class="btn sek" onclick="histPlus()">Hinzufügen</button></div>'; }
-  el('histBox').innerHTML = h; histRechnen();
+  el('histBox').innerHTML = h; histRechnen(); zeichneZaehler();
 }
 function histPlus(){ const v = el('histPlus').value; if(v && !histExtra.includes(v)){ histExtra.push(v); zeichneHistorie(); } }
 function histSpeichern(doc){ doc.monat = histMonat; ablegen('einst', histId(histMonat), doc); }
@@ -2140,29 +2139,162 @@ function histExport(){
   if(z.length === 1) return toast('Noch keine Historie vorhanden.');
   lade(new Blob(['﻿'+z.join('\n')], {type:'text/csv;charset=utf-8'}), 'PackDuese_Historie_'+heute().replace(/-/g,'')+'.csv');
 }
+/* CSV lesen: lang (Datum;Position;Anzahl) oder breit (Blöcke: „Monat;JJJJ-MM“, Kopf „Position;Bezeichnung;1;2;…“, je Position eine Zeile, Zeilen CHARGEN und THEORIE) */
+/* eine CSV-Zeile (Semikolon, Anführungszeichen erlaubt) in Zellen zerlegen */
+function csvZeile(l){ const c = []; let z = '', q = false; for(let i = 0; i < l.length; i++){ const ch = l[i]; if(q){ if(ch === '"'){ if(l[i+1] === '"'){ z += '"'; i++; } else q = false; } else z += ch; } else if(ch === '"') q = true; else if(ch === ';'){ c.push(z.trim()); z = ''; } else z += ch; } c.push(z.trim()); return c; }
+function histCsvLesen(text){
+  const zeilen = text.replace(/^﻿/,'').split(/\r?\n/).map(csvZeile), items = [], fehler = [];
+  const breit = zeilen.some(c => /^monat$/i.test(c[0]));
+  if(!breit){
+    zeilen.forEach((c, i) => {
+      if(!c.join('').trim() || String(c[0]).startsWith('#') || (i === 0 && /datum/i.test(c[0]))) return;
+      const d = c[0], mo = d.match(/^(\d{4})-(\d{2})-(\d{2})$/) || ((x) => x ? [x[0], x[3], x[2].padStart(2,'0'), x[1].padStart(2,'0')] : null)(d.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)), wert = +String(c[2]||'').replace(',','.');
+      if(!mo || !c[1] || isNaN(wert) || c[2] === ''){ fehler.push(i+1); return; }
+      items.push({m:mo[1]+'-'+mo[2], tt:mo[3], nr:c[1], wert});
+    });
+    return {items, fehler};
+  }
+  let m = '', tage = [];
+  zeilen.forEach((c, i) => {
+    if(!c.join('').trim()) return;
+    if(/^monat$/i.test(c[0])){ const x = String(c[1]||'').match(/^(\d{4})-(\d{1,2})$/); if(!x){ fehler.push(i+1); m = ''; return; } m = x[1]+'-'+x[2].padStart(2,'0'); tage = []; return; }
+    if(/^position$/i.test(c[0])){ tage = c.map((h, k) => k >= 2 && /^\d{1,2}$/.test(h) ? histTT(+h) : null); return; }
+    if(!m || !tage.length) return;
+    const nr = c[0]; if(!nr) return;
+    c.forEach((v, k) => { if(k < 2 || !tage[k] || v === '') return; const w = +String(v).replace(',','.'); if(isNaN(w)){ fehler.push(i+1); return; } if(/^theorie$/i.test(nr)){ if(k === 2 || tage.slice(2,k).every(x => x === null)) items.push({m, tt:'01', nr, wert:w}); return; } items.push({m, tt:tage[k], nr, wert:w}); });
+  });
+  return {items, fehler};
+}
 function histImport(inp){
   const f = inp.files && inp.files[0]; inp.value = ''; if(!f || !darfSchreiben()) return;
   const r = new FileReader();
   r.onload = () => {
-    const zeilen = String(r.result).replace(/^﻿/,'').split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')), neu = {}, fehler = []; let n = 0;
-    zeilen.forEach((l, i) => {
-      const c = l.split(';').map(x => x.trim().replace(/^"|"$/g,'')); if(i === 0 && /datum/i.test(c[0])) return;
-      let d = c[0], mo = d.match(/^(\d{4})-(\d{2})-(\d{2})$/) || (d.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/) || []).map((x, k, a) => k === 1 ? a[3] : k === 3 ? a[1].padStart(2,'0') : k === 2 ? a[2].padStart(2,'0') : x);
-      const wert = +String(c[2]||'').replace(',','.');
-      if(!mo || !mo[1] || !c[1] || isNaN(wert) || c[2] === ''){ fehler.push(i+1); return; }
-      const m = mo[1]+'-'+mo[2], tt = mo[3], doc = neu[m] = neu[m] || JSON.parse(JSON.stringify(histDoc(m)));
-      doc.tage = doc.tage || {}; doc.chargen = doc.chargen || {};
-      if(/^chargen$/i.test(c[1])) doc.chargen[tt] = Math.round(wert);
-      else if(/^theorie$/i.test(c[1])) doc.theorie = Math.round(wert);
-      else { doc.tage[tt] = doc.tage[tt] || {}; if(wert > 0) doc.tage[tt][c[1]] = Math.round(wert); else delete doc.tage[tt][c[1]]; }
+    const {items, fehler} = histCsvLesen(String(r.result)), neu = {}; let n = 0;
+    items.forEach(({m, tt, nr, wert}) => {
+      const doc = neu[m] = neu[m] || JSON.parse(JSON.stringify(histDoc(m))); doc.tage = doc.tage || {}; doc.chargen = doc.chargen || {};
+      if(/^chargen$/i.test(nr)) doc.chargen[tt] = Math.round(wert);
+      else if(/^theorie$/i.test(nr)) doc.theorie = Math.round(wert);
+      else { doc.tage[tt] = doc.tage[tt] || {}; if(wert > 0) doc.tage[tt][nr] = Math.round(wert); else { delete doc.tage[tt][nr]; if(!Object.keys(doc.tage[tt]).length) delete doc.tage[tt]; } }
       n++; });
-    if(!n) return alert('In der Datei wurden keine gültigen Zeilen gefunden.\n\nErwartet: Datum;Position;Anzahl  (z. B. 2026-07-08;101;54)  – Chargen als Position „CHARGEN“, theoretisch möglich als „THEORIE“.');
+    if(!n) return alert('In der Datei wurden keine gültigen Zeilen gefunden.\n\nErwartet entweder die Vorlage „Historie-Vorlage“ (Blöcke je Monat) oder Zeilen der Form  Datum;Position;Anzahl  (z. B. 2026-07-08;101;54). Chargen als Position „CHARGEN“, theoretisch möglich als „THEORIE“.');
     if(!confirm(n+' Werte aus '+Object.keys(neu).length+' Monat(en) übernehmen ('+Object.keys(neu).sort().join(', ')+')?'+(fehler.length ? '\n\nUnlesbare Zeilen werden übersprungen: '+fehler.slice(0,8).join(', ')+(fehler.length>8?' …':'') : '')+'\n\nVorhandene Werte an denselben Tagen werden überschrieben.')) return;
     sammelStart(); Object.entries(neu).forEach(([m, doc]) => { doc.monat = m; ablegen('einst', histId(m), doc); }); sammelEnde();
     notiere('Historie', 'CSV-Import', null, n+' Werte', 'importiert'); histExtra = []; zeichneHistorie(); toast(n+' Werte importiert.');
   };
   r.readAsText(f, 'utf-8');
 }
+
+/* ---------- Zählerstände (Strom, Gas gesamt, Ofen 1/2) und Energie je Stück ---------- */
+const ZAEHLER_START = {brenn:11.5, schaetz:{'2026-09':12500, '2026-10':13500}, liste:[
+  {id:'z1', datum:'2026-06-30', gas:806785, o1:30154, o2:19353, notiz:'Ablesung Hr. Schuster'},
+  {id:'z2', datum:'2026-07-01', strom:230033.88, notiz:'Zählerstand 00:00 (R. Gerstmayer)'},
+  {id:'z3', datum:'2026-08-01', strom:235927.62, notiz:'Zählerstand 00:00 (R. Gerstmayer)'},
+  {id:'z4', datum:'2026-08-26', gas:813756, o1:30990, o2:19716, notiz:'Ablesung Hr. Schuster'},
+  {id:'z5', datum:'2026-09-01', strom:242558.28, notiz:'Zählerstand 00:00 (R. Gerstmayer)'},
+  {id:'z6', datum:'2026-10-01', strom:249437.88, notiz:'Zählerstand 00:00 (R. Gerstmayer)'},
+  {id:'z7', datum:'2026-10-02', gas:819458, o1:31838, o2:19962, notiz:'Ablesung für September'}]};
+const zaehlerDoc = () => (D.einst.zaehler && Array.isArray(D.einst.zaehler.liste)) ? D.einst.zaehler : ZAEHLER_START;
+const zNum = v => (v === undefined || v === null || v === '' || isNaN(+v)) ? null : +v;
+const zTage = d => { const [y, m, t] = String(d).split('-').map(Number); return Math.round(Date.UTC(y, m-1, t)/86400000); };
+const zSortiert = () => zaehlerDoc().liste.slice().sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
+const zde = (n, k) => n === null || n === undefined || isNaN(n) ? '–' : Number(n).toLocaleString('de-DE', {minimumFractionDigits:k||0, maximumFractionDigits:k||0});
+function zStromBei(t){   /* Zählerstand zum Beginn des Tages t (00:00), linear zwischen den Ablesungen; danach hochgerechnet */
+  const p = zSortiert().filter(r => zNum(r.strom) !== null).map(r => ({t:zTage(r.datum), v:+r.strom})), x = zTage(t);
+  if(p.length < 2 || x < p[0].t) return null;
+  for(let i = 1; i < p.length; i++) if(x <= p[i].t) return {v:p[i-1].v + (p[i].v-p[i-1].v)*(x-p[i-1].t)/(p[i].t-p[i-1].t), geschaetzt:false};
+  const a = p[p.length-2], b = p[p.length-1]; return {v:b.v + (b.v-a.v)/(b.t-a.t)*(x-b.t), geschaetzt:true};
+}
+function zZeitraeume(){
+  const g = zSortiert().filter(r => zNum(r.gas) !== null), l = [];
+  for(let i = 1; i < g.length; i++) l.push({id:g[i].id, von:g[i-1].datum, bis:g[i].datum, a:g[i-1], b:g[i], tage:zTage(g[i].datum)-zTage(g[i-1].datum)});
+  return l;
+}
+function zRechnen(p){
+  const pr = energiePreise(), brenn = +zaehlerDoc().brenn > 0 ? +zaehlerDoc().brenn : 11.5, max = histMaxKg(), r = {p, brenn, fehlt:[], n:{}};
+  const d = (k) => zNum(p.b[k]) !== null && zNum(p.a[k]) !== null ? zNum(p.b[k]) - zNum(p.a[k]) : null;
+  r.gas = d('gas'); r.o1 = d('o1'); r.o2 = d('o2'); r.ofen = (r.o1 !== null || r.o2 !== null) ? (r.o1||0) + (r.o2||0) : null;
+  const s0 = zStromBei(plusTage(p.von,1)), s1 = zStromBei(plusTage(p.bis,1)); r.strom = s0 && s1 ? s1.v - s0.v : null; r.stromGesch = !!(s1 && s1.geschaetzt);
+  r.minC = 0; r.istC = 0; r.tageIst = 0; r.kg = 0; r.stk = 0; r.tageDaten = 0;
+  const monate = new Set();
+  for(let x = plusTage(p.von,1); x <= p.bis; x = plusTage(x,1)){
+    const m = x.slice(0,7), tt = x.slice(8), doc = histDoc(m); monate.add(m);
+    const z = (doc.tage||{})[tt]; if(!z) continue;
+    const t = histTag(doc, tt); r.minC += t.min; r.kg += t.kg; r.tageDaten++;
+    const ist = (doc.chargen||{})[tt]; if(ist !== undefined && ist !== '') { r.istC += +ist; r.tageIst++; }
+    Object.entries(z).forEach(([nr, n]) => { if(+n > 0){ r.n[nr] = (r.n[nr]||0) + (+n); r.stk += +n; } });
+  }
+  monate.forEach(m => { if(!D.einst[histId(m)]) r.fehlt.push(m); });
+  /* Ofenlast je Stück = Bruchteil eines Ofengangs (strengerer Wert aus kg und Stück/Ofengang) */
+  const zeilen = Object.entries(r.n).map(([nr, n]) => { const t = histPos(nr) || {}, g = polymerGVon(t), kap = +t.ofenKap > 0 ? +t.ofenKap : 0;
+    const last = Math.max(g ? g/1000/max : 0, kap ? 1/kap : 0), ofen = (t.schritte||[]).includes('Ofen'), basis = !t.sonstiges && posArt(t) !== 'tag';
+    return {nr, t, n, last, ofen, basis, schaetz:false}; });
+  const bek = zeilen.filter(z => z.ofen && z.last > 0), sumN = bek.reduce((a, z) => a + z.n, 0), avg = sumN ? bek.reduce((a, z) => a + z.n*z.last, 0)/sumN : 0;
+  zeilen.forEach(z => { if(z.ofen && !(z.last > 0) && avg > 0){ z.last = avg; z.schaetz = true; } });
+  const W = zeilen.reduce((a, z) => a + (z.ofen ? z.n*z.last : 0), 0), basisN = zeilen.reduce((a, z) => a + (z.basis ? z.n : 0), 0);
+  r.restGas = r.gas !== null && r.ofen !== null ? Math.max(0, r.gas - r.ofen) : null;
+  const restKosten = (r.restGas||0)*pr.gas + (r.strom||0)*pr.strom;
+  r.restJeStk = basisN ? restKosten/basisN : null;
+  r.zeilen = zeilen.sort((a, b) => (parseInt(a.nr,10)||0) - (parseInt(b.nr,10)||0)).map(z => {
+    const ofenM3 = z.ofen && W > 0 && r.ofen !== null ? r.ofen*z.n*z.last/W/z.n : 0;     /* m³ Ofengas je Stück */
+    const rest = z.basis && r.restJeStk !== null ? r.restJeStk : 0;
+    const kwh = ofenM3*brenn + (z.basis && basisN ? ((r.restGas||0)*brenn + (r.strom||0))/basisN : 0);
+    return {...z, ofenM3, ofenEur: ofenM3*pr.gas, restEur: rest, eur: ofenM3*pr.gas + rest, kwh}; });
+  r.kosten = (r.gas||0)*pr.gas + (r.strom||0)*pr.strom; r.pr = pr;
+  return r;
+}
+function zeichneZaehler(){
+  const sw = darfSchreiben(), dis = sw ? '' : ' disabled', doc = zaehlerDoc(), liste = zSortiert(), zr = zZeitraeume();
+  const cell = (r, k, w, step) => '<td style="padding:1px"><input type="number" step="'+(step||'any')+'" value="'+(zNum(r[k]) === null ? '' : r[k])+'" style="width:'+w+'px;padding:3px;text-align:right"'+dis+' onchange="zFeld(\''+r.id+'\',\''+k+'\',this.value)"></td>';
+  let h = '<hr style="margin:28px 0 14px;border:0;border-top:1px solid var(--grau-linie)"><h2>Zählerstände und Energie je Stück</h2>'+
+    '<p class="sub">Strom (Abteilung gesamt, Stand 00:00), Gas gesamt (Zähler 66015) und Ofen 1/2 (m³) mit Datum eintragen &ndash; die Ablesungen müssen nicht am Monatsende liegen. Zwischen zwei Gas-Ablesungen wird der Verbrauch mit der Historie auf die einzelnen Packs verteilt.</p>'+
+    '<div class="werkzeuge"><label class="sub" style="display:flex;align-items:center;gap:6px">kWh je m³ Gas<input type="number" step="0.01" min="1" value="'+(+doc.brenn||11.5)+'" style="width:80px"'+dis+' onchange="zBrenn(this.value)"></label>'+
+    '<span class="sub">Preise: Strom '+de(energiePreise().strom,2)+' €/kWh · Gas '+de(energiePreise().gas,2)+' €/m³'+(D.einst.energiepreise ? '' : ' <i>(Annahme, bitte anpassen)</i>')+'</span>'+
+    (sw ? '<button class="btn sek" onclick="energiePreisDialog()">Preise ändern</button>' : '')+'<span style="flex:1"></span>'+(sw ? '<button class="btn sek" onclick="zNeu()">+ Ablesung</button>' : '')+'</div>'+
+    '<div style="overflow:auto"><table class="liste" style="font-size:12.5px"><thead><tr><th>Datum</th><th class="num">Strom kWh</th><th class="num">Gas gesamt m³</th><th class="num">Ofen 1 m³</th><th class="num">Ofen 2 m³</th><th>Notiz</th><th style="width:36px"></th></tr></thead><tbody>'+
+    liste.map(r => '<tr><td style="padding:1px"><input type="date" value="'+esc(r.datum)+'"'+dis+' onchange="zFeld(\''+r.id+'\',\'datum\',this.value)"></td>'+cell(r,'strom',110,'0.01')+cell(r,'gas',100)+cell(r,'o1',80)+cell(r,'o2',80)+
+      '<td style="padding:1px"><input type="text" value="'+esc(r.notiz||'')+'" style="width:230px"'+dis+' onchange="zFeld(\''+r.id+'\',\'notiz\',this.value)"></td><td>'+(sw ? '<button class="mini" title="Zeile löschen" onclick="zWeg(\''+r.id+'\')">&times;</button>' : '')+'</td></tr>').join('')+'</tbody></table></div>';
+  const sch = doc.schaetz || {}, sk = Object.keys(sch).sort();
+  if(sk.length) h += '<p class="sub" style="margin-top:6px">(Schätzung R. Gerstmayer, vorläufig: '+sk.map(k => 'Gas '+k.slice(5)+'/'+k.slice(0,4)+' ca. '+zde(sch[k])+' m³').join(' · ')+')'+(sw ? ' <a href="#" onclick="zSchaetzWeg();return false">Schätzwerte entfernen</a>' : '')+'</p>';
+  if(!zr.length){ el('histBox').innerHTML += h+'<p class="sub">Für eine Auswertung werden mindestens zwei Gas-Ablesungen gebraucht.</p>'; return; }
+  const gew = (histZ && zr.some(z => z.id === histZ)) ? histZ : zr[zr.length-1].id; histZ = gew;
+  h += '<h3 style="margin-top:22px">Auswertung für einen Zeitraum</h3><div class="werkzeuge"><select id="histZSel" onchange="histZ=this.value;zeichneZaehlerErgebnis()">'+zr.map(z => '<option value="'+z.id+'"'+(z.id===gew?' selected':'')+'>'+dmy(z.von)+' &rarr; '+dmy(z.bis)+' ('+z.tage+' Tage)</option>').join('')+'</select></div><div id="histZErg"></div>';
+  el('histBox').innerHTML += h; zeichneZaehlerErgebnis();
+}
+let histZ = '';
+function zeichneZaehlerErgebnis(){
+  const zr = zZeitraeume().find(z => z.id === histZ); if(!zr) return; const r = zRechnen(zr), pr = r.pr, doc = zaehlerDoc();
+  const k2 = (t, w, hint) => kz(w, t+(hint ? '<br><small>'+hint+'</small>' : ''));
+  const jeCh = r.ofen !== null ? (r.istC > 0 ? {n:r.istC, art:'gefahrene'} : (r.minC > 0 ? {n:r.minC, art:'mindestens nötige'} : null)) : null;
+  let h = '<div class="kennzahlen" style="margin:10px 0">'+
+    k2('Gas gesamt', r.gas !== null ? zde(r.gas)+' m³' : '–', r.gas !== null ? zde(r.gas*r.brenn)+' kWh · '+zde(r.gas/zr.tage*30)+' m³ je 30 Tage' : '')+
+    k2('davon Ofen 1+2', r.ofen !== null ? zde(r.ofen)+' m³' : '–', r.ofen !== null && r.gas ? zde(r.ofen/r.gas*100)+' % vom Gesamtgas · Ofen 1: '+zde(r.o1)+' · Ofen 2: '+zde(r.o2) : '')+
+    k2('Strom', r.strom !== null ? zde(r.strom)+' kWh' : '–', r.strom !== null ? (r.stromGesch ? 'hochgerechnet (letzte Ablesung fehlt)' : 'zwischen den Ablesungen berechnet') : 'zu wenige Strom-Ablesungen')+
+    k2('Energiekosten', zde(r.kosten,0)+' €', 'Gas + Strom, ganze Abteilung')+
+    k2('Chargen', r.istC > 0 ? r.istC : (r.minC || '–'), r.istC > 0 ? 'gefahren (an '+r.tageIst+' Tagen eingetragen) · mind. '+r.minC : (r.minC ? 'mindestens nötig (nach Historie)' : 'Historie für den Zeitraum fehlt'))+
+    (jeCh && r.ofen ? k2('Ofengas je Charge', zde(r.ofen/jeCh.n,1)+' m³', zde(r.ofen/jeCh.n*r.brenn,0)+' kWh · '+zde(r.ofen/jeCh.n*pr.gas,1)+' € ('+jeCh.art+')') : '')+'</div>';
+  const sch = doc.schaetz || {}, mk = {}; for(let x = plusTage(zr.von,1); x <= zr.bis; x = plusTage(x,1)) mk[x.slice(0,7)] = 1;
+  const gs = Object.keys(sch).filter(k => mk[k]); if(gs.length && r.gas !== null) h += '<p class="sub">Zum Vergleich ('+gs.map(k => 'Schätzung Robin '+k.slice(5)+'/'+k.slice(0,4)+': ca. '+zde(sch[k])+' m³ im Monat').join('; ')+') &ndash; der Zähler zeigt hier im Schnitt '+zde(r.gas/zr.tage*30)+' m³ je 30 Tage.</p>';
+  if(r.fehlt.length) h += '<div class="hinweis rot">Für '+r.fehlt.map(m => m.slice(5)+'/'+m.slice(0,4)).join(', ')+' gibt es noch keine Historie. Die Verteilung auf die Packs ist unvollständig, bis die Tageswerte eingetragen sind.</div>';
+  else if(!r.stk) h += '<div class="hinweis rot">Im Zeitraum sind keine Stückzahlen in der Historie eingetragen.</div>';
+  else if(r.tageDaten < zr.tage*0.5) h += '<div class="hinweis rot">Nur für '+r.tageDaten+' von '+zr.tage+' Tagen sind Stückzahlen eingetragen &ndash; die Kosten je Stück fallen dadurch zu hoch aus.</div>';
+  if(r.stk){
+    h += '<div style="overflow:auto;max-height:56vh"><table class="liste" style="font-size:12.5px"><thead><tr><th>Position</th><th class="num">Stück</th><th class="num">Ofengas je Stück</th><th class="num">Ofen €/Stück</th><th class="num">Strom + übr. Gas €/Stück</th><th class="num">Gesamt €/Stück</th><th class="num">kWh je Stück</th></tr></thead><tbody>'+
+      r.zeilen.map(z => '<tr><td style="white-space:nowrap"><b>'+esc(z.nr)+'</b> <span class="sub">'+esc((z.t.name||'(nicht im Katalog)').slice(0,48))+'</span>'+(z.schaetz ? ' <span class="pill warn" title="Keine Polymer-/Ofengang-Angabe: mit dem Durchschnitt der übrigen Ofen-Positionen gerechnet">geschätzt</span>' : '')+(z.ofen ? '' : ' <span class="pill grau">ohne Ofen</span>')+'</td><td class="num">'+zde(z.n)+'</td><td class="num">'+(z.ofen ? zde(z.ofenM3*1000,0)+' l' : '–')+'</td><td class="num">'+(z.ofen ? zde(z.ofenEur,2) : '–')+'</td><td class="num">'+(z.basis ? zde(z.restEur,2) : '–')+'</td><td class="num"><b>'+zde(z.eur,2)+'</b></td><td class="num">'+zde(z.kwh,1)+'</td></tr>').join('')+'</tbody></table></div>'+
+      '<p class="sub" style="margin-top:8px"><b>So wird gerechnet:</b> Das Ofengas (Ofen 1+2) wird nach dem Anteil am Ofengang verteilt, den ein Stück belegt (strengerer Wert aus kg und Stück je Ofengang). Übriges Gas und Strom werden gleichmäßig auf alle Stück verteilt (ohne „Sonstiges“ und Transport). Preise: Gas '+de(pr.gas,2)+' €/m³, Strom '+de(pr.strom,2)+' €/kWh, '+de(r.brenn,1)+' kWh je m³. Positionen ohne Polymer- und Ofengang-Angabe zählen mit dem Durchschnitt (gekennzeichnet). Das ist eine Näherung, kein Messwert je Pack.</p>';
+  }
+  el('histZErg').innerHTML = h;
+}
+function zSpeichern(liste, extra){ const d = zaehlerDoc(); ablegen('einst','zaehler', {brenn:d.brenn, schaetz:d.schaetz||{}, ...(extra||{}), liste}); }
+function zFeld(id, k, v){
+  if(!darfSchreiben()) return; const l = zaehlerDoc().liste.map(r => ({...r})), r = l.find(x => x.id === id); if(!r) return;
+  const alt = r[k]; if(k === 'notiz' || k === 'datum') r[k] = v; else if(v === '') delete r[k]; else r[k] = +String(v).replace(',','.');
+  if(k === 'datum' && !v) return zeichneHistorie();
+  zSpeichern(l); notiere('Zähler', (r.datum||'')+' '+k, alt, r[k], 'Zählerstand geändert'); zeichneHistorie();
+}
+function zNeu(){ if(!darfSchreiben()) return; const l = zaehlerDoc().liste.map(r => ({...r})); l.push({id:'z'+neueId(), datum:heute(), notiz:''}); zSpeichern(l); zeichneHistorie(); }
+function zWeg(id){ if(!darfSchreiben()) return; const l = zaehlerDoc().liste, r = l.find(x => x.id === id); if(!r || !confirm('Zeile vom '+dmy(r.datum)+' löschen?')) return; zSpeichern(l.filter(x => x.id !== id)); notiere('Zähler', r.datum, JSON.stringify(r), null, 'Ablesung gelöscht'); zeichneHistorie(); }
+function zBrenn(v){ if(!darfSchreiben()) return; const b = +String(v).replace(',','.'); if(!(b > 0)) return; zSpeichern(zaehlerDoc().liste, {brenn:b}); zeichneHistorie(); }
+function zSchaetzWeg(){ if(!darfSchreiben() || !confirm('Die vorläufigen Schätzwerte von Hrn. Gerstmayer entfernen?')) return; zSpeichern(zaehlerDoc().liste, {schaetz:{}}); zeichneHistorie(); }
 
 /* ---------- Ofenplan: Läufe aus dem Auftragsbestand (max. Polymermenge je Lauf) ---------- */
 const OFEN_START_EINST = {maxKg:10, stdKg:1, nacht:true, tagLaeufe:2};
@@ -3384,85 +3516,6 @@ function allesLoeschen(){
   if(prompt('Zur Sicherheit "LÖSCHEN" eintippen:') !== 'LÖSCHEN') return;
   massenLoeschen(['mitarbeiter','auftraege','zeiten','urlaub','sonderfaelle'].flatMap(c => Object.keys(D[c]).map(id => [c, id])));
   notiere('System','alles',null,null,'alle Daten gelöscht'); alles();
-}
-function demoLaden(){
-  if(Object.keys(D.mitarbeiter).length && !confirm('Es sind schon Daten vorhanden. Fake-Daten trotzdem dazuladen?')) return;
-  sammelStart();
-  const h = heute();
-  let saat = 4711; const zuf = () => { saat = (saat*1103515245 + 12345) & 0x7fffffff; return saat/0x7fffffff; };
-  const wahlAus = l => l[Math.floor(zuf()*l.length)];
-  const leute = [['Anna Berger',8,['Demontieren','Nachwaschen','Messen'],'fest'],['Markus Huber',8,['Strahlen','Ofen','Demontieren'],'fest'],['Stefan Keller',8,[],'fest'],['Lisa Wagner',6,['Waschen','Nachwaschen','Messen'],'fest'],['Tobias Reiter',8,['Demontieren','Waschen'],'neu'],['Daniel Schmid',8,['Demontieren','Strahlen','Ofen'],'zeitarbeit']];
-  const ids = leute.map(p => { const id = neueId(); ablegen('mitarbeiter', id, {id, name:p[0], stundenTag:p[1], aktiv:true, email:'', kann:p[2], typ:p[3]}); return id; });
-  if(!D.einst.oefen) ablegen('einst','oefen',{liste: OEFEN_START});
-  const pos = posAnlegenIntern(), posNr = nr => pos.find(p => p.nr === nr);
-  const gaengig = ['101','101','102','108','112','109','301','301','302','303','401','402','901','902','905','1301','1701','1708','1709','411','801','111','305','404','405','103','903','107','1604'].filter(n => posNr(n));
-  const frei = ['Ersatzteil nach Zeichnung reinigen','Pack mit Rissprüfung','Kundenmuster, Sonderreinigung','Schmelzefilter mit starker Verschmutzung'];
-  const tagesKap = leute.reduce((s,p)=>s+p[1],0);
-  const sonstPos = pos.filter(p => p.sonstiges);
-  const wahl = () => zuf() < 0.06 ? wahlAus(sonstPos) : posNr(wahlAus(gaengig));
-  const mengeFuer = p => { const a = posArt(p); return a === 'korb' ? wahlAus([9,18,18,27,36]) : a === 'baum' ? wahlAus([11,20,22,40]) : a === 'staender' ? wahlAus([4,8,12]) : a === 'charge' ? wahlAus([1,2]) : a === 'satz' ? wahlAus([1,2,3]) : a === 'tag' ? 1 : wahlAus([2,3,4,6,8]); };
-  const mk = (p, menge, o) => { const id = neueId(), fr = p.sonstiges ? wahlAus(frei) : '';
-    const a = {id, nummer:o.nummer, teilId:p.id, posNr:p.nr, freitext:fr, kunde:p.kunde, menge, art:posArt(p), proEinheit:posPro(p), einheiten:einheitenVon(p, menge), polymerG:polymerGVon(p)||'',
-      bezeichnung:p.nr+' · '+p.name+(fr? ' – '+fr:'')+', '+mengeText(p, menge), start:o.start, endeKunde:o.ende||'', sollGesamt:sollBerechnen(p, menge, p.schritte), sollAuto:true, sollJe:{}, maxPersonen:0, notiz:'', status:o.status, prio:o.prio,
-      schritte:[...p.schritte], materialien:[], ofenId:'', mengen:{}, abgeschlossenAm:'', qmVermerk:o.qm||'', qmErledigt:!!o.qmOk, erstellt:new Date().toISOString(), erstelltVon:'Demo'};
-    ablegen('auftraege', id, a);
-    if(fr) ablegen('sonderfaelle', 's'+id, {id:'s'+id, datum:o.start < h ? o.start : h, typ:'sonstiges', kunde:p.kunde, posNr:p.nr, auftragId:id, beschreibung:fr, material:'', folge:'keine', ofenId:'', ausfallH:'', kundeInformiert:false, notiz:'', erstellt:new Date().toISOString(), erstelltVon:'Demo'});
-    return a; };
-  // Offene Aufträge: etwa 1 Woche Arbeit, die meisten ohne Termin
-  const offen = []; let kumuliert = 0, nrO = 41;
-  while(kumuliert < tagesKap * 5){
-    const p = wahl(), menge = mengeFuer(p);
-    const hatTermin = zuf() < 0.3, dauer = Math.round(kumuliert / tagesKap * 1.25) + 2 + Math.floor(zuf()*6) - 2;
-    let termin = plusTage(h, Math.max(2, dauer)); while(!istArbeitstag(termin)) termin = plusTage(termin,1);
-    const a = mk(p, menge, {nummer:'A-'+h.slice(0,4)+'-0'+(nrO++), start: zuf() < 0.1 ? plusTage(h, 3+Math.floor(zuf()*10)) : h, ende: hatTermin ? termin : '', status:'offen', prio:nrO});
-    offen.push(a); kumuliert += sollVon(a);
-  }
-  const urlaub = [[3,-2,4,'U'],[5,-4,-3,'K'],[1,7,18,'U'],[0,21,25,'U'],[4,35,46,'U'],[2,-15,-12,'U']];
-  urlaub.forEach(u => { const id = neueId(); ablegen('urlaub', id, {id, mitarbeiterId:ids[u[0]], von:plusTage(h,u[1]), bis:plusTage(h,u[2]), art:u[3]}); });
-  const fr = {};
-  const kapLeer = (i, t, d) => { const k = ids[i]+'|'+t; if(fr[k] === undefined) fr[k] = (d===0 && i>2) ? 0 : (d===0 ? 4 : leute[i][1]); return fr[k]; };
-  // Stunden je Arbeitsschritt (Demontieren je Stück, übrige je Einheit) in der Reihenfolge des Ablaufs buchen
-  const schrittStunden = (a, p, faktor) => { const rw = posRw(p), dem = a.schritte.includes('Demontieren'), rest = a.schritte.filter(s => s !== 'Demontieren');
-    const l = []; if(dem) l.push([ 'Demontieren', a.menge*rw.s*faktor ]); rest.forEach(s => l.push([s, a.einheiten*rw.e*faktor/Math.max(1,rest.length)])); return l; };
-  const buche = (a, liste, team, von, bis, ofenLimit) => {
-    let idx = 0, rest = liste.map(x => [x[0], Math.round(x[1]*4)/4]).filter(x => x[1] > 0), letzter = von - 1;
-    for(let d = von; d <= bis && idx < rest.length; d++){ const t = plusTage(h, d); if(!istArbeitstag(t)) continue;
-      team.forEach(i => { if(idx >= rest.length || abwesend(ids[i], t)) return;
-        const k = kapLeer(i, t, d), take = Math.min(k, rest[idx][1]); if(take <= 0) return;
-        fr[ids[i]+'|'+t] -= take; rest[idx][1] -= take; letzter = d;
-        const z = neueId(); ablegen('zeiten', z, {id:z, datum:t, mitarbeiterId:ids[i], auftragId:a.id, taetigkeit:rest[idx][0], ofenId:'', stunden:take, art:'normal', bemerkung:'', erfasstVon:'Demo', erfasstAm:new Date().toISOString()});
-        if(rest[idx][1] <= 1e-9) idx++; }); }
-    return letzter;
-  };
-  // Die ersten Aufträge sind schon angefangen (bis kurz vor dem Ofen)
-  [[0,[0,1,2],-6,0],[1,[3,4],-4,-1],[2,[5],-2,0],[3,[2,4],-3,-1],[4,[0,5],-1,0]].forEach(q => { const a = offen[q[0]]; if(!a) return; const p = D.teile[a.teilId], l = schrittStunden(a, p, 1).slice(0, 1+Math.floor(zuf()*2));
-    buche(a, l, q[1], q[2], q[3]); if(l.length && l[0][0] === 'Demontieren') a.erledigt = {Demontieren:true}; ablegen('auftraege', a.id, a); });
-  // Historie: 12 Monate abgeschlossene Aufträge
-  const histUrlaub = [[0,-330,-320,'U'],[0,-200,-190,'U'],[1,-300,-296,'K'],[1,-150,-136,'U'],[2,-280,-270,'U'],[2,-90,-80,'U'],[3,-250,-240,'U'],[3,-120,-118,'K'],[4,-340,-330,'U'],[4,-180,-170,'U'],[5,-210,-200,'U'],[5,-60,-58,'K'],[0,-45,-44,'K'],[2,-160,-146,'U']];
-  histUrlaub.forEach(u => { const id = neueId(); ablegen('urlaub', id, {id, mitarbeiterId:ids[u[0]], von:plusTage(h,u[1]), bis:plusTage(h,u[2]), art:u[3]}); });
-  const qmTexte = ['Packs kamen mit Restpolymer, Waschgang wiederholt.','Ofenlauf war nur zur Hälfte gefüllt, nächste Aufträge früher bündeln.','Sandstrahlen hat länger gedauert, Düsen stark verkrustet.','Kunde hat Termin kurzfristig vorgezogen.'];
-  let nr = 1, tagStart = -365;
-  while(tagStart < -30){
-    const p = wahl(), menge = mengeFuer(p), team = wahlAus([[0,1],[2,4],[1,2,5],[3,5],[0,3,4],[4,5],[0,1,2,5]]);
-    const faktor = 0.75 + zuf()*0.6;
-    const a0 = mk(p, menge, {nummer:'H-'+plusTage(h,tagStart).slice(0,4)+'-'+String(nr++).padStart(3,'0'), start:plusTage(h,tagStart), ende: zuf()<0.25 ? plusTage(h, tagStart + 3 + Math.floor(zuf()*5)) : '', status:'abgeschlossen', prio:100+nr, qm: zuf() < 0.12 ? wahlAus(qmTexte) : '', qmOk: zuf() < 0.6});
-    const liste = schrittStunden(a0, p, faktor), gesamt = liste.reduce((s,x) => s+x[1], 0);
-    const letzter = buche(a0, liste, team, tagStart, -28);
-    const dauerAT = Math.max(1, Math.ceil(gesamt/(team.length*7)));
-    a0.abgeschlossenAm = plusTage(h, Math.max(letzter, tagStart) + 1 + Math.floor(zuf()*2)); ablegen('auftraege', a0.id, a0);
-    tagStart += Math.max(1, Math.round(dauerAT*0.9)) + Math.floor(zuf()*3);
-  }
-  // Ofen-Notizen (Beispiele)
-  [['JM',-40,'Packs mit anderem Polymer (nicht gemeldet)','Ofen abgeschaltet (Übertemperatur)','ofen1',6,'Kunde hatte anderes Material nicht gemeldet, Ofen hat bei Übertemperatur abgeschaltet.'],
-   ['Perlon',-120,'Hoher Restanteil, mehr Kühlung nötig','Mehr Wasser (Zusatzkühlung)','ofen2',0,'Während des Laufs musste zusätzlich gekühlt werden.']].forEach((s,i) =>
-    ablegen('sonderfaelle','so'+i,{id:'so'+i, datum:plusTage(h,s[1]), typ:'ofen', kunde:s[0], posNr:'', auftragId:'', beschreibung:s[6], material:s[2], folge:s[3], ofenId:s[4], ausfallH:s[5]||'', kundeInformiert:i===0, notiz:'', erstellt:new Date().toISOString(), erstelltVon:'Demo'}));
-  ablegen('einst','kunden',{liste: kunden()});
-  const mon = {}; for(let k=1;k<=12;k++){ const d = new Date(); d.setMonth(d.getMonth()-k, 1); const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    mon[key] = {strom: Math.round(5200+zuf()*1800), wasser: Math.round(80+zuf()*40), gas: Math.round(1800+zuf()*900)}; }
-  ablegen('einst','energie',{monate: mon});
-  sammelEnde();
-  try { rangAnwenden(); } catch(x){}
-  notiere('System','Fake-Daten',null,null,'geladen'); alles();
 }
 
 /* ---------- Speicherung ---------- */
