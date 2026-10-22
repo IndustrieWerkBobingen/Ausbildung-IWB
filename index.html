@@ -981,7 +981,7 @@ body.vollbild .karte{margin-bottom:12px}
 
     <div style="overflow:auto;margin-top:16px">
       <table class="liste"><thead><tr>
-        <th>Konto</th><th style="width:190px">Rolle</th><th>Standorte</th><th style="width:44px"></th>
+        <th>Konto</th><th style="width:190px">Rolle</th><th>Standorte</th><th style="width:150px"></th>
       </tr></thead><tbody id="rollenBody"></tbody></table>
     </div>
 
@@ -998,6 +998,17 @@ body.vollbild .karte{margin-bottom:12px}
       </select></label>
       <button class="btn" onclick="rolleHinzu()">Zuordnen</button>
     </div>
+
+    <h2 style="margin:22px 0 2px;font-size:16px">Passwort zur&uuml;cksetzen</h2>
+    <p class="sub" style="margin:0 0 10px">Schickt dem Konto eine Mail mit einem Link, &uuml;ber den
+      es sich selbst ein neues Passwort vergibt. Du siehst das Passwort nicht &ndash; das ist Absicht.
+      Funktioniert nur bei Konten mit Passwort-Anmeldung und einem echten Postfach.</p>
+    <div class="werkzeuge" style="align-items:flex-end">
+      <label>E-Mail des Kontos<input type="text" id="pwMail"
+        placeholder="f.wagner@iwb-is.de" style="width:250px"></label>
+      <button class="btn sek" onclick="passwortMail()">Mail verschicken</button>
+    </div>
+    <div id="pwStatus"></div>
   </div>
 
   <div class="karte">
@@ -2682,7 +2693,13 @@ function rollenZeichnen(){
             '<option value="'+o+'"'+(o===r?' selected':'')+'>'+rollenName(o)+'</option>').join('')+
         '</select></td>'+
         '<td>'+ortKnoepfe(mail)+'</td>'+
-        '<td><button class="mini" onclick="rolleEntfernen(\''+mail+'\')">&times;</button></td></tr>').join('')
+        '<td style="white-space:nowrap">'+
+          '<button class="mini" style="width:auto;padding:2px 8px;font-size:11px" '+
+            'onclick="passwortMail(\''+mail+'\')" title="Mail zum Zurücksetzen schicken">'+
+            'Passwort</button> '+
+          '<button class="mini" onclick="rolleEntfernen(\''+mail+'\')" '+
+            'title="Zuordnung entfernen">&times;</button>'+
+        '</td></tr>').join('')
     : '<tr><td colspan="4" style="padding:16px;color:var(--text-hell)">Noch keine Zuordnung. '+
       'Alle Konten haben vollen Zugriff.</td></tr>';
 }
@@ -2714,6 +2731,52 @@ function rolleHinzu(){
   rollenSpeichern('Konto '+mail+' als '+rollenName(rollenTabelle[mail])+' zugeordnet');
 }
 function rolleSetzen(mail, r){ rollenTabelle[mail] = r; rollenSpeichern('Rolle von '+mail+' geändert'); }
+/* Zuruecksetzen laeuft ueber Firebase: die Seite setzt kein Passwort,
+   sie bittet Firebase nur, dem Konto einen Link zu schicken. Deshalb
+   geht das aus einer reinen HTML-Datei ueberhaupt. */
+function passwortMail(adresse){
+  const feld = el('pwMail');
+  const mail = String(adresse || (feld ? feld.value : '')).trim().toLowerCase();
+  const melde = (text, farbe) => {
+    if(el('pwStatus')) el('pwStatus').innerHTML =
+      '<div class="hinweis'+(farbe||'')+'" style="margin:12px 0 0">'+text+'</div>';
+  };
+  if(!mail || !mail.includes('@')) return melde('Bitte eine gültige E-Mail eingeben.', ' rot');
+  if(rolle !== 'admin') return melde('Das darf nur ein Konto mit vollem Zugriff.', ' rot');
+  if(!cloudAktiv || !fbAuth) return melde('Dafür wird eine Verbindung zur Datenbank gebraucht.', ' rot');
+  if(!confirm('An '+mail+' eine Mail zum Zurücksetzen des Passworts schicken?\n\n'+
+              'Der Empfänger vergibt das neue Passwort selbst. Du bekommst es nicht zu sehen.')) return;
+
+  melde('Mail wird verschickt …');
+  fbAuth.sendPasswordResetEmail(mail)
+    .then(() => {
+      /* Protokoll und Anzeige getrennt: geht das Schreiben ins Archiv schief,
+         ist die Mail trotzdem raus - dann darf hier nicht "nicht verschickt" stehen. */
+      try {
+        notiere('Konto', mail, '', null, null, 'Mail zum Zurücksetzen des Passworts verschickt');
+        logge('Passwort-Mail an '+mail+' verschickt');
+      } catch(e){ /* Protokoll ist Beiwerk */ }
+      melde('<b>Verschickt.</b> Falls es dieses Konto mit Passwort-Anmeldung gibt, liegt die Mail '+
+            'jetzt im Postfach von '+mail+'. Absender ist noreply@'+
+            (FIREBASE_KONFIG.authDomain || 'firebase') +
+            ' &ndash; bitte auch im Junk-Ordner nachsehen. Der Link gilt eine Stunde.', ' gruen');
+      if(feld) feld.value = '';
+    })
+    .catch(e => {
+      const texte = {
+        'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
+        'auth/user-not-found': 'Dieses Konto gibt es in Firebase nicht. '+
+          'Prüf die Schreibweise, oder leg es unter Authentication → Nutzer an.',
+        'auth/too-many-requests': 'Zu viele Versuche. Bitte ein paar Minuten warten.',
+        'auth/network-request-failed': 'Keine Verbindung zum Server.',
+        'auth/missing-android-pkg-name': 'Einstellungsfehler in Firebase.',
+        'auth/unauthorized-continue-uri': 'Die Adresse dieser Seite ist in Firebase nicht '+
+          'als autorisierte Domain eingetragen.'
+      };
+      melde('<b>Nicht verschickt.</b> '+(texte[e.code] || ('Fehler: '+(e.code || e))), ' rot');
+    });
+}
+
 function rolleEntfernen(mail){
   if(!confirm('Zuordnung für '+mail+' entfernen? Das Konto hat danach vollen Zugriff.')) return;
   delete rollenTabelle[mail];
