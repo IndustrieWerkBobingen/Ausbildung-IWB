@@ -724,6 +724,26 @@ body.vollbild .karte{margin-bottom:12px}
     <p class="sub" style="margin:10px 0 0">Gewicht gerechnet mit 7,85 kg/dm&sup3; f&uuml;r Stahl.
       Beim Drucken im Dialog &bdquo;Als PDF speichern&ldquo; w&auml;hlen.</p>
   </div>
+
+  <div class="karte">
+    <h2 style="margin-top:0">Fr&uuml;here Anforderungen</h2>
+    <p class="sub">Jede gedruckte Anforderung wird mit allen Positionen abgelegt.
+      &bdquo;&Ouml;ffnen&ldquo; holt sie zum Bearbeiten zur&uuml;ck ins Formular,
+      &bdquo;Drucken&ldquo; gibt sie unver&auml;ndert noch einmal aus.</p>
+    <div class="werkzeuge">
+      <input type="text" id="banfSuche" placeholder="Nummer, Name oder Ma&szlig;"
+        style="width:230px" oninput="zeichneBanfListe()">
+      <button class="btn sek" onclick="banfArchivCsv()">Alle als CSV</button>
+    </div>
+    <div style="overflow:auto;max-height:46vh">
+      <table class="liste"><thead><tr>
+        <th style="width:150px">Nummer</th><th style="width:96px">Datum</th>
+        <th>Angefordert von</th><th style="text-align:right">Positionen</th>
+        <th style="text-align:right">Stangen</th><th style="text-align:right">Gewicht</th>
+        <th>Ma&szlig;e</th><th style="width:150px"></th>
+      </tr></thead><tbody id="banfArchivBody"></tbody></table>
+    </div>
+  </div>
 </section>
 
 <section id="v-verbrauch" class="verstecke">
@@ -2048,31 +2068,55 @@ function banfCsv(){
        'BANF_'+(el('bNummer').value.trim()||datum())+'.csv');
 }
 
-function banfDrucken(){
-  const zeilen = banfLesen();
-  if(!zeilen.length){ alert('Bitte mindestens eine Position eintragen.'); return; }
-  const dat = el('bDatum').value ? new Date(el('bDatum').value).toLocaleDateString('de-DE')
-                                 : new Date().toLocaleDateString('de-DE');
-  const bis = el('bBis').value ? new Date(el('bBis').value).toLocaleDateString('de-DE') : '';
-  const nr = el('bNummer').value.trim() || ('BANF-'+datum()+'-01');
+/* ---------- Bestellanforderungen ----------
+   Jede gedruckte Anforderung wird als eigenes Dokument abgelegt, damit
+   sie spaeter wieder geoeffnet und erneut gedruckt werden kann. */
+let banfListe = [];   // {nr, d, von, kost, lieferant, bis, wst, bem, zeilen[], st, kg, erstellt}
+
+function banfKopfLesen(){
+  return {
+    nr:  el('bNummer').value.trim() || banfNaechsteNummer(),
+    d:   el('bDatum').value || new Date().toISOString().slice(0,10),
+    von: el('bVon').value.trim() || el('benutzer').value.trim(),
+    kost: el('bKost').value.trim(),
+    lieferant: el('bLieferant').value.trim(),
+    bis: el('bBis').value || '',
+    wst: el('bWerkstoff').value.trim(),
+    bem: el('bBemerkung').value.trim()
+  };
+}
+
+/* Naechste freie Nummer des Tages: BANF-JJJJMMTT-01, -02, ... */
+function banfNaechsteNummer(){
+  const heute = datum();
+  let n = 0;
+  banfListe.forEach(b => {
+    const m = String(b.nr).match(new RegExp('^BANF-'+heute+'-(\\d+)$'));
+    if(m) n = Math.max(n, +m[1]);
+  });
+  return 'BANF-'+heute+'-'+String(n+1).padStart(2,'0');
+}
+
+function banfMarkup(kopf, zeilen){
+  const dat = kopf.d ? new Date(kopf.d).toLocaleDateString('de-DE')
+                     : new Date().toLocaleDateString('de-DE');
+  const bis = kopf.bis ? new Date(kopf.bis).toLocaleDateString('de-DE') : '';
   const kgSumme = zeilen.reduce((s,z)=>s+z.kg,0);
   const stSumme = zeilen.reduce((s,z)=>s+z.stangen,0);
-
   const feld = (l,w) => w ? '<tr><td class="l">'+l+'</td><td><b>'+w+'</b></td></tr>' : '';
 
-  el('druck').innerHTML =
-   '<div class="dseite">'+
+  return '<div class="dseite">'+
     '<div class="bkopf"><div><p class="titel">BESTELLANFORDERUNG</p>'+
       '<div class="unter">Stahllager &middot; Flach- und Vierkantstahl</div></div>'+
       '<div style="text-align:right"><img class="dlogo" src="'+LOGO+'" alt="IWB">'+
-      '<div class="unter" style="margin-top:5px"><b>'+nr+'</b><br>'+dat+'</div></div></div>'+
+      '<div class="unter" style="margin-top:5px"><b>'+kopf.nr+'</b><br>'+dat+'</div></div></div>'+
 
     '<table class="bkopfdaten">'+
-      feld('Angefordert von', el('bVon').value.trim() || el('benutzer').value.trim()) +
-      feld('Abteilung / Kostenstelle', el('bKost').value.trim()) +
-      feld('Lieferant', el('bLieferant').value.trim()) +
+      feld('Angefordert von', kopf.von) +
+      feld('Abteilung / Kostenstelle', kopf.kost) +
+      feld('Lieferant', kopf.lieferant) +
       feld('Ben&ouml;tigt bis', bis) +
-      feld('Werkstoff (Standard)', el('bWerkstoff').value.trim()) +
+      feld('Werkstoff (Standard)', kopf.wst) +
     '</table>'+
 
     '<table class="bpos"><thead><tr>'+
@@ -2084,24 +2128,126 @@ function banfDrucken(){
         '<tr><td>'+(i+1)+'</td><td><b>'+z.mass+'</b> mm</td><td>'+(z.wst||'')+'</td>'+
         '<td class="n">'+(z.laenge? z.laenge.toLocaleString('de-DE') : '')+'</td>'+
         '<td class="n"><b>'+z.stangen+'</b></td>'+
-        '<td class="n">'+(z.kg? de(z.kg,1):'')+'</td><td>'+z.bem+'</td></tr>').join('')+
+        '<td class="n">'+(z.kg? de(z.kg,1):'')+'</td><td>'+(z.bem||'')+'</td></tr>').join('')+
       '<tr class="summe"><td colspan="4">Summe</td><td class="n">'+stSumme+'</td>'+
       '<td class="n">'+de(kgSumme,1)+'</td><td></td></tr>'+
     '</tbody></table>'+
 
-    '<div class="bbem"><span class="l">Bemerkung</span>'+
-      (el('bBemerkung').value.trim() || '&nbsp;')+'</div>'+
+    '<div class="bbem"><span class="l">Bemerkung</span>'+(kopf.bem || '&nbsp;')+'</div>'+
 
     '<div class="bunterschrift">'+
       '<div>Datum, Anforderer</div><div>Datum, Freigabe Vorgesetzter</div><div>Datum, Einkauf</div></div>'+
 
     '<div class="dfuss" style="margin-top:8mm"><span>Gewichte berechnet mit 7,85 kg/dm&sup3; &middot; '+
       'Angaben ohne Gew&auml;hr, ma&szlig;geblich ist die Bestellbest&auml;tigung</span>'+
-      '<span>Erstellt am '+new Date().toLocaleString('de-DE')+'</span></div>'+
+      '<span>'+(kopf.erstellt
+        ? 'Erstellt am '+new Date(kopf.erstellt).toLocaleString('de-DE')+
+          ' &middot; erneut gedruckt am '+new Date().toLocaleString('de-DE')
+        : 'Erstellt am '+new Date().toLocaleString('de-DE'))+'</span></div>'+
    '</div>';
+}
 
+function banfDrucken(){
+  const zeilen = banfLesen();
+  if(!zeilen.length){ alert('Bitte mindestens eine Position eintragen.'); return; }
+  const kopf = banfKopfLesen();
+  const kgSumme = zeilen.reduce((s,z)=>s+z.kg,0);
+  const stSumme = zeilen.reduce((s,z)=>s+z.stangen,0);
+
+  const schon = banfListe.find(b => b.nr === kopf.nr);
+  if(schon && !confirm('Die Nummer '+kopf.nr+' gibt es schon (vom '+
+      new Date(schon.erstellt||schon.d).toLocaleDateString('de-DE')+').\n\n'+
+      'Soll die frühere Anforderung damit überschrieben werden?\n'+
+      'Abbrechen und eine neue Nummer vergeben: '+banfNaechsteNummer())) return;
+
+  el('druck').innerHTML = banfMarkup(kopf, zeilen);
   window.print();
-  notiere('BANF', '', '', null, null, nr+': '+zeilen.length+' Position(en), '+stSumme+' Stangen, '+de(kgSumme,0)+' kg');
+  banfAblegen(kopf, zeilen, stSumme, kgSumme);
+  notiere('BANF', kopf.nr, '', null, null,
+          kopf.nr+': '+zeilen.length+' Position(en), '+stSumme+' Stangen, '+de(kgSumme,0)+' kg');
+}
+
+function banfAblegen(kopf, zeilen, st, kg){
+  const satz = {...kopf, zeilen, st, kg,
+    erstellt: new Date().toISOString(),
+    erstelltVon: el('benutzer').value.trim() || (angemeldet? angemeldet.email : '')};
+  banfListe = banfListe.filter(b => b.nr !== satz.nr);
+  banfListe.unshift(satz);
+  zeichneBanfListe();
+  if(cloudAktiv && angemeldet && !nurLesen())
+    db.collection('banf').doc(satz.nr).set({...satz, clientId})
+      .catch(e => cloudStatus('Anforderung nicht abgelegt: '+(e.code||e), '#B3261E'));
+}
+
+function zeichneBanfListe(){
+  const feld = el('banfArchivBody'); if(!feld) return;
+  const q = (el('banfSuche') ? el('banfSuche').value : '').trim().toLowerCase();
+  const liste = banfListe
+    .filter(b => !q || (b.nr+' '+(b.von||'')+' '+(b.kost||'')+' '+(b.lieferant||'')+' '+
+                        (b.zeilen||[]).map(z => z.mass).join(' ')).toLowerCase().includes(q))
+    .slice(0, 200);
+  feld.innerHTML = liste.length
+    ? liste.map(b => {
+        const masse = (b.zeilen||[]).map(z => z.mass).join(', ');
+        return '<tr><td><b>'+b.nr+'</b>'+
+          (b.erstelltVon? '<br><span class="sub">'+b.erstelltVon+'</span>':'')+'</td>'+
+          '<td>'+(b.d? new Date(b.d).toLocaleDateString('de-DE') : '')+'</td>'+
+          '<td>'+(b.von||'')+(b.kost? '<br><span class="sub">'+b.kost+'</span>':'')+'</td>'+
+          '<td class="num">'+(b.zeilen||[]).length+'</td>'+
+          '<td class="num"><b>'+(b.st||0)+'</b></td>'+
+          '<td class="num">'+de(b.kg||0,0)+' kg</td>'+
+          '<td style="color:var(--text-hell)">'+(masse.length>60? masse.slice(0,60)+' …' : masse)+'</td>'+
+          '<td style="white-space:nowrap">'+
+            '<button class="mini" style="width:auto;padding:2px 8px;font-size:11px" '+
+              'onclick="banfOeffnen(\''+b.nr+'\')">&Ouml;ffnen</button> '+
+            '<button class="mini" style="width:auto;padding:2px 8px;font-size:11px" '+
+              'onclick="banfErneutDrucken(\''+b.nr+'\')">Drucken</button>'+
+          '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="8" style="padding:16px;color:var(--text-hell)">'+
+      (banfListe.length? 'Nichts gefunden.'
+        : 'Noch keine Anforderung abgelegt. Sobald du eine druckst, steht sie hier.')+'</td></tr>';
+}
+
+function banfOeffnen(nr){
+  const b = banfListe.find(x => x.nr === nr); if(!b) return;
+  el('bNummer').value = b.nr;
+  el('bDatum').value = b.d || '';
+  el('bVon').value = b.von || '';
+  el('bKost').value = b.kost || '';
+  el('bLieferant').value = b.lieferant || '';
+  el('bBis').value = b.bis || '';
+  if(b.wst) el('bWerkstoff').value = b.wst;
+  el('bBemerkung').value = b.bem || '';
+  el('banfBody').innerHTML = '';
+  (b.zeilen||[]).forEach(z => banfZeile(z.mass, z.wst, z.laenge, z.stangen, z.bem));
+  if(!(b.zeilen||[]).length) banfZeile();
+  banfRechnen();
+  try { window.scrollTo({top:0, behavior:'instant'}); } catch(e){ window.scrollTo(0,0); }
+  cloudStatus(b.nr+' ins Formular geholt', '#5A9E2F');
+}
+
+function banfErneutDrucken(nr){
+  const b = banfListe.find(x => x.nr === nr); if(!b) return;
+  el('druck').innerHTML = banfMarkup(b, b.zeilen||[]);
+  window.print();
+  notiere('BANF', b.nr, '', null, null, b.nr+' erneut gedruckt');
+}
+
+function banfArchivCsv(){
+  if(!banfListe.length) return alert('Es ist noch keine Anforderung abgelegt.');
+  const kopf = 'Nummer;Datum;Angefordert von;Kostenstelle;Lieferant;Benoetigt bis;'+
+               'Pos;Mass;Werkstoff;Laenge mm;Stangen;Gewicht kg;Bemerkung\n';
+  const zeilen = [];
+  banfListe.slice().sort((a,b) => String(b.nr).localeCompare(String(a.nr))).forEach(b => {
+    (b.zeilen||[]).forEach((z,i) => {
+      zeilen.push([b.nr, b.d||'', b.von||'', b.kost||'', b.lieferant||'', b.bis||'',
+        i+1, z.mass, z.wst||'', z.laenge||'', z.stangen||0, de(z.kg||0,1),
+        String(z.bem||'').replace(/;/g,',')].join(';'));
+    });
+  });
+  lade(new Blob(['﻿'+kopf+zeilen.join('\n')], {type:'text/csv;charset=utf-8'}),
+       'Bestellanforderungen_'+datum()+'.csv');
 }
 
 /* ---------- Drucken ---------- */
@@ -3262,7 +3408,16 @@ function datenLauschen(){
 
 function abosStarten(){
   bestandLauschen();
+  if(!istTablet()) banfLauschen();
   if(rolle === 'admin'){ archivLauschen(); backupsLauschen(); }
+}
+
+function banfLauschen(){
+  db.collection('banf').orderBy('erstellt','desc').limit(200).onSnapshot(s => {
+    banfListe = [];
+    s.forEach(d => banfListe.push(d.data()));
+    zeichneBanfListe();
+  }, e => cloudStatus('Anforderungen nicht lesbar: '+(e.code||e), '#B3261E'));
 }
 
 function bestandLauschen(){
@@ -3342,7 +3497,7 @@ if(FIREBASE_KONFIG.apiKey){
 }
 zeileHinzu();
 el('bDatum').value = new Date().toISOString().slice(0,10);
-el('bNummer').value = 'BANF-'+datum()+'-01';
+el('bNummer').value = banfNaechsteNummer();
 el('bWerkstoff').value = stdWst();
 el('bLaenge').value = stange();
 el('stdWerkstoff').addEventListener('input', () => el('bWerkstoff').value = stdWst());
