@@ -550,9 +550,6 @@ body.vollbild .karte{margin-bottom:12px}
     <button data-ansicht="banf">BANF</button>
     <button data-ansicht="verbrauch">Verbrauch</button>
     <button data-ansicht="archiv">Archiv</button>
-    <button data-ansicht="artikel">Bestand</button>
-    <button data-ansicht="abanf">Bestellanforderung</button>
-    <button data-ansicht="averbrauch">Verbrauch</button>
     <button data-ansicht="verwaltung">Verwaltung</button>
     <button data-ansicht="daten">Daten</button>
   </nav>
@@ -567,10 +564,6 @@ body.vollbild .karte{margin-bottom:12px}
   <button onclick="vollbildAn()">Vollbild</button>
   <button onclick="standbyAn()">Sperren</button>
   <button onclick="abmelden()">Abmelden</button>
-</div>
-<div class="standortband" id="standortBand" style="display:none">
-  <span>Standort: <b id="standortName">&ndash;</b></span>
-  <button onclick="standortWaehlen()">Standort wechseln</button>
 </div>
 
 </div>
@@ -810,147 +803,6 @@ body.vollbild .karte{margin-bottom:12px}
   </div>
 </section>
 
-<section id="v-keller" class="verstecke">
-  <h1>Kellerlager Geb&auml;ude 30</h1>
-  <p class="sub">Chaoslager &ndash; jeder Platz kann alles aufnehmen, die Liste ist der Suchindex.</p>
-
-  <div class="kennzahlen" id="kKennzahlen"></div>
-
-  <div class="werkzeuge">
-    <input type="text" id="kSuche" placeholder="Suchen, z. B. Papier oder Regal 3" style="width:220px">
-    <select id="kKategorie"><option value="">alle Kategorien</option></select>
-    <label><input type="checkbox" id="kNurKnapp"> nur knappe Best&auml;nde</label>
-    <button class="btn nurAdmin" onclick="kellerNeu()">+ Artikel anlegen</button>
-    <button class="btn sek" id="btnKellerCsv" onclick="kellerCsv()">Als CSV</button>
-  </div>
-
-  <div class="karte" style="padding:0;overflow:auto;max-height:66vh">
-    <table class="liste"><thead><tr>
-      <th>Artikel</th><th>Kategorie</th><th>Platz</th>
-      <th style="text-align:right">Bestand</th><th>Einheit</th><th>&Auml;ndern</th>
-      <th style="text-align:right">Mindest</th><th>Status</th><th style="width:70px"></th>
-    </tr></thead><tbody id="kellerBody"></tbody></table>
-  </div>
-</section>
-
-<section id="v-artikel" class="verstecke">
-  <h1 id="artKopf">Bestand</h1>
-  <p class="sub">Gemeinsamer Artikelstamm &ndash; Nummer, Name, Kategorie und Preis gelten f&uuml;r alle
-    Standorte. Bestand, Platz und Mindestbestand geh&ouml;ren zum jeweiligen Lager.</p>
-  <div class="kennzahlen" id="artKennzahlen"></div>
-  <div class="werkzeuge" id="bereichWahl" style="display:none">
-    <div class="zeitwahl" id="ansichtKnoepfe">
-      <button data-ansichtart="liste" class="aktiv">Liste</button>
-      <button data-ansichtart="raster">Schubladen</button>
-    </div>
-    <div class="zeitwahl" id="eigentumKnoepfe">
-      <button data-eig="" class="aktiv">Alle</button>
-      <button data-eig="iwb">Nur IWB</button>
-      <button data-eig="extern">Nur extern</button>
-    </div>
-  </div>
-  <div class="werkzeuge">
-    <input type="text" id="artSuche" placeholder="Nummer, Name oder Platz" style="width:230px">
-    <select id="artKat"><option value="">alle Kategorien</option></select>
-    <label><input type="checkbox" id="artKnapp"> nur knappe Best&auml;nde</label>
-    <label><input type="checkbox" id="artAlle"> alle Artikel zeigen (auch ohne Bestand hier)</label>
-    <button class="btn nurAdmin" onclick="artNeu()">+ Artikel anlegen</button>
-    <button class="btn sek nurAdmin" onclick="artVorlageCsv()">Eintippliste (.csv)</button>
-    <label class="btn sek nurAdmin" style="display:inline-block;margin:0">Liste einlesen
-      <input type="file" id="artCsvDatei" accept=".csv,.txt" style="display:none"
-        onchange="artCsvDateiWahl(this)"></label>
-    <button class="btn sek nurAdmin" onclick="artCsv()">Alles als CSV</button>
-  </div>
-  <div id="artImportErgebnis"></div>
-  <div id="schubRaster" class="karte verstecke" style="overflow:auto"></div>
-  <div class="karte" id="artTabelle" style="padding:0;overflow:auto;max-height:64vh">
-    <table class="liste"><thead><tr>
-      <th style="width:88px">Nummer</th><th>Artikel</th><th>Kategorie</th><th>Platz</th>
-      <th style="text-align:right">Bestand</th><th>Einheit</th><th>Buchen</th>
-      <th style="text-align:right">Mindest</th><th id="eigenSpalte">Eigentum</th>
-      <th class="preisSpalte" style="text-align:right">Preis</th>
-      <th class="preisSpalte" style="text-align:right">Wert</th><th>Status</th><th style="width:74px"></th>
-    </tr></thead><tbody id="artBody"></tbody></table>
-  </div>
-</section>
-
-<section id="v-abanf" class="verstecke">
-  <h1>Bestellanforderung</h1>
-  <p class="sub">Vorschlag aus den Mindestbest&auml;nden &ndash; f&uuml;r einen Standort oder
-    &uuml;ber alle hinweg, dann werden gleiche Artikel zusammengefasst.</p>
-  <div id="korbBereich"></div>
-  <div id="meldeUebersicht"></div>
-  <div class="werkzeuge">
-    <label>Umfang <select id="abUmfang">
-      <option value="ort">nur dieser Standort</option>
-      <option value="alle">alle Standorte zusammen</option>
-    </select></label>
-    <button class="btn" onclick="abVorschlag()">Aus Meldebest&auml;nden f&uuml;llen</button>
-    <button class="btn sek" onclick="abZeileNeu()">+ Position</button>
-    <button class="btn sek" onclick="abLeeren()">Leeren</button>
-  </div>
-  <div class="karte">
-    <div style="overflow:auto">
-      <table class="edit" style="min-width:760px"><thead><tr>
-        <th style="width:88px">Nummer</th><th>Artikel</th><th style="width:96px">Menge</th>
-        <th style="width:74px">Einheit</th><th class="preisSpalte" style="width:96px">Preis</th>
-        <th class="preisSpalte" style="width:96px">Summe</th><th>Bedarf / Standort</th>
-        <th style="width:34px"></th>
-      </tr></thead><tbody id="abanfBody"></tbody></table>
-    </div>
-    <div id="abanfSumme"></div>
-    <div class="werkzeuge" style="margin-top:12px">
-      <button class="btn gruen" onclick="abAbsenden()">An den Einkauf senden</button>
-      <button class="btn" onclick="abDrucken()">Als PDF drucken</button>
-      <button class="btn sek" onclick="abCsv()">Als CSV</button>
-    </div>
-  </div>
-</section>
-
-<section id="v-averbrauch" class="verstecke">
-  <h1>Verbrauch</h1>
-  <p class="sub">Was wurde entnommen &ndash; je Standort oder &uuml;ber alle Lager hinweg.</p>
-  <div class="werkzeuge">
-    <div class="zeitwahl" id="avZeit">
-      <button data-zeit="1" class="aktiv">Monat</button>
-      <button data-zeit="3">Quartal</button>
-      <button data-zeit="12">Jahr</button>
-    </div>
-    <label>Umfang <select id="avUmfang">
-      <option value="ort">nur dieser Standort</option>
-      <option value="alle">alle Standorte</option>
-    </select></label>
-  </div>
-  <div class="kennzahlen" id="avKennzahlen"></div>
-  <div class="karte">
-    <h2 style="margin-top:0">Verbrauch je Monat</h2>
-    <div class="diagramm" id="avChart"></div>
-  </div>
-  <div class="karte" id="zweckKarte">
-    <h2 style="margin-top:0">Wof&uuml;r wurde verbaut</h2>
-    <p class="sub">Nur Entnahmen, bei denen ein Verwendungszweck eingetragen wurde.</p>
-    <div style="overflow:auto;max-height:44vh">
-      <table class="liste"><thead><tr>
-        <th>Verwendung</th><th style="text-align:right">Entnahmen</th>
-        <th style="text-align:right">Einheiten</th>
-        <th class="preisSpalte" style="text-align:right">Wert</th>
-        <th>H&auml;ufigste Teile</th>
-      </tr></thead><tbody id="zweckBody"></tbody></table>
-    </div>
-  </div>
-
-  <div class="karte">
-    <h2 style="margin-top:0">Meistverbrauchte Artikel</h2>
-    <div style="overflow:auto;max-height:50vh">
-      <table class="liste"><thead><tr>
-        <th style="width:88px">Nummer</th><th>Artikel</th><th>Standort</th>
-        <th style="text-align:right">Menge</th><th class="preisSpalte" style="text-align:right">Wert</th>
-        <th style="text-align:right">Bestand jetzt</th>
-      </tr></thead><tbody id="avBody"></tbody></table>
-    </div>
-  </div>
-</section>
-
 <section id="v-verwaltung" class="verstecke">
   <h1>Verwaltung</h1>
   <p class="sub">Tablets, Personen, Sperrcode und Sicherungen an einer Stelle.</p>
@@ -981,7 +833,7 @@ body.vollbild .karte{margin-bottom:12px}
 
     <div style="overflow:auto;margin-top:16px">
       <table class="liste"><thead><tr>
-        <th>Konto</th><th style="width:190px">Rolle</th><th>Standorte</th><th style="width:150px"></th>
+        <th>Konto</th><th style="width:190px">Rolle</th><th style="width:150px"></th>
       </tr></thead><tbody id="rollenBody"></tbody></table>
     </div>
 
@@ -1021,24 +873,6 @@ body.vollbild .karte{margin-bottom:12px}
         onkeydown="if(event.key==='Enter')personHinzu()">
       <button class="btn" onclick="personHinzu()">Hinzuf&uuml;gen</button>
       <button class="btn sek" onclick="personenMehrere()">Mehrere auf einmal</button>
-    </div>
-  </div>
-
-  <div class="karte">
-    <h2 style="margin-top:0">Lieferanten im Konsignationslager</h2>
-    <p class="sub">Firmen, deren Ware bei uns im Konsi liegt. Die Mailadresse wird gebraucht,
-      um vor einer Bestellung die Zustimmung einzuholen.</p>
-    <div style="overflow:auto">
-      <table class="liste"><thead><tr>
-        <th>Firma</th><th>Ansprechpartner</th><th>E-Mail</th>
-        <th style="text-align:right">Artikel</th><th style="width:44px"></th>
-      </tr></thead><tbody id="firmenBody"></tbody></table>
-    </div>
-    <div class="werkzeuge" style="margin-top:12px;align-items:flex-end">
-      <label>Firma<input type="text" id="fName" placeholder="Name des Lieferanten" style="width:180px"></label>
-      <label>Ansprechpartner<input type="text" id="fAnsprech" placeholder="optional" style="width:160px"></label>
-      <label>E-Mail<input type="text" id="fMail" placeholder="bestellung@firma.de" style="width:200px"></label>
-      <button class="btn" onclick="firmaHinzu()">Aufnehmen</button>
     </div>
   </div>
 
@@ -1088,12 +922,6 @@ body.vollbild .karte{margin-bottom:12px}
       dabei &uuml;berschrieben. Einmal t&auml;glich beim ersten Start legt die Anwendung
       selbstst&auml;ndig eine an.</p>
     <div id="backupListe"></div>
-    <div class="hinweis" style="margin-top:14px" id="umzugKarte">
-      <b>Einmalige &Uuml;bernahme.</b> Falls noch Daten aus der fr&uuml;heren Struktur
-      (ein Sammeldokument) vorliegen, werden sie hiermit in die neue Form &uuml;berf&uuml;hrt.
-      Bestehende Artikel werden dabei nicht &uuml;berschrieben.
-      <div style="margin-top:9px"><button class="btn sek" onclick="umzugStarten()">Alte Daten &uuml;bernehmen</button></div>
-    </div>
     <div class="werkzeuge" style="margin-top:12px">
       <button class="btn" onclick="backupJetzt()">Jetzt sichern</button>
       <button class="btn sek" onclick="exportJson()">Zus&auml;tzlich als Datei</button>
@@ -1134,14 +962,11 @@ body.vollbild .karte{margin-bottom:12px}
 
 <div class="menuschatten" id="menuSchatten" onclick="menuZu()"></div>
 <div id="loginBox"></div>
-<div id="wahlBox"></div>
 <div id="standbyBox"></div>
 <div id="dialogBox"></div>
 <div id="vollbildLeiste">
   <button onclick="menuUm()" title="Men&uuml;" class="vbmenu"><span></span><span></span><span></span></button>
-  <span id="vbOrt">&ndash;</span>
   <span id="vbPerson"></span>
-  <button onclick="standortWaehlen()" title="Standort wechseln">Standort</button>
   <button onclick="standbyAn()" title="Sperren">&#128274; Sperren</button>
   <button class="raus" onclick="vollbildAus()" title="Vollbild verlassen">Vollbild beenden</button>
 </div>
@@ -2365,8 +2190,8 @@ function drucken(){
 /* ---------- Daten ---------- */
 function exportJson(){
   lade(new Blob([JSON.stringify({stand:new Date().toISOString(), stange:stange(),
-    werkstoff:stdWst(), lager, protokoll, verbrauch, istDemo, archiv, keller, rollenTabelle, rollenOrte, personen, sperrcode,
-    artikel, bestand, bewegungen, meldungen, warenkorb, firmen}, null, 2)], {type:'application/json'}),
+    werkstoff:stdWst(), lager, protokoll, verbrauch, istDemo, archiv,
+    rollenTabelle, personen, sperrcode}, null, 2)], {type:'application/json'}),
     'Stahllager_Bestand_'+datum()+'.json');
   logge('Bestand gesichert');
 }
@@ -2392,12 +2217,8 @@ el('importDatei').addEventListener('change', e => {
       if(!obj.lager) throw new Error('Format');
       lager = obj.lager; protokoll = obj.protokoll || [];
       verbrauch = obj.verbrauch || []; istDemo = !!obj.istDemo; archiv = obj.archiv || [];
-      keller = obj.keller || [];
-      rollenTabelle = obj.rollenTabelle || {}; rollenOrte = obj.rollenOrte || {};
+      rollenTabelle = obj.rollenTabelle || {};
       personen = obj.personen || [];
-      artikel = obj.artikel || []; bestand = obj.bestand || {}; bewegungen = obj.bewegungen || [];
-      meldungen = obj.meldungen || {}; warenkorb = obj.warenkorb || [];
-      firmen = obj.firmen || [];
       if(obj.sperrcode) sperrcode = obj.sperrcode;
       if(obj.stange) el('stangeLaenge').value = obj.stange;
       if(obj.werkstoff) el('stdWerkstoff').value = obj.werkstoff;
@@ -2433,8 +2254,7 @@ function vollbildAus(){
 }
 
 function vollbildBeschriften(){
-  const o = el('vbOrt'), pn = el('vbPerson');
-  if(o) o.innerHTML = ORTE[standort] ? ORTE[standort].name : '–';
+  const pn = el('vbPerson');
   if(pn) pn.textContent = el('benutzer').value.trim() || '';
 }
 
@@ -2469,7 +2289,7 @@ function menuZu(){
 function ausbuchen(){
   if(nurLesen()) return alert('Dieser Zugang darf nichts buchen.');
   if(!el('benutzer').value.trim()){ namenAbfragen(); return; }
-  if(standort === 'stahl') ausbuchenStahl(); else ausbuchenArtikel();
+  ausbuchenStahl();
 }
 
 function ausbuchenStahl(){
@@ -2537,147 +2357,24 @@ function abBuchen(mass){
   alert(n+' x '+mass+' ausgebucht.\nNeuer Bestand: '+t.item.q);
 }
 
-function ausbuchenArtikel(){
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:600px">'+
-    '<div class="kopf"><div><b>Entnahme buchen</b><span>&nbsp;'+ortName(standort)+' &middot; '+
-      (el('benutzer').value.trim()||'')+'</span></div>'+
-    '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf">'+
-      '<input type="text" class="absuche" id="abSuche" placeholder="Artikel oder Nummer suchen" '+
-      'oninput="abTrefferArtikel()">'+
-      '<div class="abliste" id="abListe"></div>'+
-    '</div></div></div>';
-  abTrefferArtikel();
-  setTimeout(() => { const f = el('abSuche'); if(f) f.focus(); }, 60);
-}
-function abTrefferArtikel(){
-  const q = (el('abSuche').value || '').trim().toLowerCase();
-  const eigene = bestand[standort] || {};
-  const liste = artikel.filter(a => eigene[a.nr])
-    .filter(a => !q || (a.nr+' '+a.name+' '+(a.f||'')+' '+(a.groesse||'')+' '+a.kat+' '+
-                        (eigene[a.nr].platz||'')).toLowerCase().includes(q))
-    .sort((a,b) => grundVon(a).localeCompare(grundVon(b),'de') ||
-                   String(basisVon(a)).localeCompare(String(basisVon(b)),'de',{numeric:true}) ||
-                   ausfSort(a,b)).slice(0,40);
-  el('abListe').innerHTML = liste.length
-    ? liste.map(a => '<button class="abzeile" onclick="abMengeArtikel(\''+a.nr+'\')">'+
-        '<div><b>'+grundVon(a)+(ausfVon(a)? '  <span style="color:var(--blau)">'+ausfVon(a)+'</span>':'')+
-        '</b><span class="ort">'+basisVon(a)+' &middot; '+
-        (eigene[a.nr].platz||'ohne Platz')+'</span></div>'+
-        '<span class="best">'+eigene[a.nr].q+'<span style="font-size:12px;font-weight:400"> '+
-        (a.einheit||'')+'</span></span></button>').join('')
-    : '<p class="sub">Kein Artikel gefunden.</p>';
-}
-function abMengeArtikel(nr){
-  const a = artFind(nr); const b = ortBestand(standort, nr);
-  if(!a || !b) return;
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:520px">'+
-    '<div class="kopf"><div><b>'+a.name+'</b><span>&nbsp;'+nr+' &middot; '+(b.platz||'')+
-      ' &middot; Bestand '+b.q+' '+(a.einheit||'')+'</span></div>'+
-    '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf" style="text-align:center">'+
-      '<p class="sub" style="margin:0">Wie viel wird entnommen?</p>'+
-      '<div class="abmenge">'+
-        '<button onclick="abPlus(-1)">&minus;</button>'+
-        '<input type="number" id="abZahl" value="1" min="1">'+
-        '<button onclick="abPlus(1)">+</button>'+
-      '</div>'+
-      '<label style="display:block;text-align:left;margin:4px 0 14px">Wof&uuml;r? '+
-        '<span class="sub">(freiwillig)</span>'+
-        '<input type="text" id="abZweck" list="zweckListe" '+
-        'placeholder="Maschine, Auftrag oder Bereich"></label>'+
-      '<datalist id="zweckListe">'+zweckVorschlaege()+'</datalist>'+
-      '<button class="btn sek" onclick="abBuchenArtikel(\''+nr+'\',1)">Zugang statt Entnahme</button>'+
-    '</div>'+
-    '<div class="fuss"><button class="btn sek" onclick="ausbuchenArtikel()">Zur&uuml;ck</button>'+
-    '<button class="btn gruen" onclick="abBuchenArtikel(\''+nr+'\',-1)">Entnehmen</button></div></div></div>';
-  setTimeout(() => { const f = el('abZahl'); if(f){ f.focus(); f.select(); } }, 60);
-}
+/* Verwendungszwecke aus dem Archiv vorschlagen */
 function zweckVorschlaege(){
-  const bekannt = [...new Set(bewegungen.map(b => b.zweck).filter(Boolean))]
+  const bekannt = [...new Set(archiv.filter(e => e.art === 'Entnahme')
+    .map(e => (e.i||'').replace(/^f\u00fcr:\s*/,''))
+    .filter(t => t && !t.includes('St\u00fccklisten')))]
     .sort((a,b) => a.localeCompare(b,'de')).slice(0,40);
   return bekannt.map(z => '<option value="'+String(z).replace(/"/g,'&quot;')+'">').join('');
-}
-
-function abBuchenArtikel(nr, richtung){
-  const a = artFind(nr); const b = ortBestand(standort, nr);
-  if(!a || !b) return;
-  const n = Math.max(1, parseInt(el('abZahl').value,10) || 1);
-  if(richtung < 0 && n > b.q) return alert('So viel ist nicht vorhanden. Bestand: '+b.q);
-  const zweck = el('abZweck') ? el('abZweck').value.trim() : '';
-  schliesse();
-  artBuchen(nr, richtung * n, zweck);
-  alert((richtung<0? n+' entnommen.' : n+' zugebucht.')+'\nNeuer Bestand: '+b.q+' '+(a.einheit||''));
-}
-
-function ausbuchenKeller(){
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:600px">'+
-    '<div class="kopf"><div><b>Entnahme buchen</b><span>&nbsp;'+
-      (el('benutzer').value.trim()||'')+'</span></div>'+
-    '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf">'+
-      '<input type="text" class="absuche" id="abSuche" placeholder="Artikel suchen" '+
-      'oninput="abTrefferKeller()">'+
-      '<div class="abliste" id="abListe"></div>'+
-    '</div></div></div>';
-  abTrefferKeller();
-  setTimeout(() => { const f = el('abSuche'); if(f) f.focus(); }, 60);
-}
-function abTrefferKeller(){
-  const q = (el('abSuche').value || '').trim().toLowerCase();
-  const liste = keller
-    .filter(a => !q || (a.name+' '+a.kat+' '+a.platz).toLowerCase().includes(q))
-    .sort((a,b) => a.name.localeCompare(b.name,'de')).slice(0, 40);
-  el('abListe').innerHTML = liste.length
-    ? liste.map(a => '<button class="abzeile" onclick="abMengeKeller(\''+a.id+'\')">'+
-        '<div><b>'+a.name+'</b><span class="ort">'+(a.platz||'ohne Platz')+
-        (a.kat? ' &middot; '+a.kat:'')+'</span></div>'+
-        '<span class="best">'+a.q+'<span style="font-size:12px;font-weight:400"> '+
-        (a.einheit||'')+'</span></span></button>').join('')
-    : '<p class="sub">Kein Artikel gefunden.</p>';
-}
-function abMengeKeller(id){
-  const a = keller.find(x => x.id === id); if(!a) return;
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:520px">'+
-    '<div class="kopf"><div><b>'+a.name+'</b><span>&nbsp;'+(a.platz||'')+
-      ' &middot; Bestand '+a.q+' '+(a.einheit||'')+'</span></div>'+
-    '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf" style="text-align:center">'+
-      '<p class="sub" style="margin:0">Wie viel wird entnommen?</p>'+
-      '<div class="abmenge">'+
-        '<button onclick="abPlus(-1)">&minus;</button>'+
-        '<input type="number" id="abZahl" value="1" min="1">'+
-        '<button onclick="abPlus(1)">+</button>'+
-      '</div>'+
-      '<button class="btn sek" onclick="abBuchenKeller(\''+id+'\',1)">Zugang statt Entnahme</button>'+
-    '</div>'+
-    '<div class="fuss"><button class="btn sek" onclick="ausbuchenKeller()">Zur&uuml;ck</button>'+
-    '<button class="btn gruen" onclick="abBuchenKeller(\''+id+'\',-1)">Entnehmen</button></div></div></div>';
-  setTimeout(() => { const f = el('abZahl'); if(f){ f.focus(); f.select(); } }, 60);
-}
-function abBuchenKeller(id, richtung){
-  const a = keller.find(x => x.id === id); if(!a) return;
-  const n = Math.max(1, parseInt(el('abZahl').value,10) || 1);
-  if(richtung < 0 && n > a.q) return alert('So viel ist nicht vorhanden. Bestand: '+a.q);
-  schliesse();
-  kellerAendern(id, richtung * n);
-  alert((richtung<0? n+' entnommen.' : n+' zugebucht.')+'\nNeuer Bestand: '+a.q+' '+(a.einheit||''));
 }
 
 /* ---------- Verwaltung ---------- */
 const CODE_START = 'IWB-Lager-4719';
 let sperrcode = CODE_START;
 let rollenTabelle = {};
-let rollenOrte = {};   // { email: ['geb30','feuerwehr'] }
 let backups = [];          // [{slot, stand, von, groesse}]
 let codeSichtbar = false;
 
 function zeichneVerwaltung(){ rollenZeichnen(); personenZeichnen(); backupsZeichnen();
-  codeZeichnen(); mailEinstellungenZeichnen(); firmenZeichnen(); }
+  codeZeichnen(); mailEinstellungenZeichnen(); }
 
 /* --- Rollen --- */
 function rollenZeichnen(){
@@ -2689,10 +2386,9 @@ function rollenZeichnen(){
         '<tr><td><b>'+mail+'</b>'+(mail === (angemeldet? (angemeldet.email||'').toLowerCase():'')
           ? ' <span class="pill neu">das bist du</span>':'')+'</td>'+
         '<td><select onchange="rolleSetzen(\''+mail+'\',this.value)" style="width:100%">'+
-          ['admin','ausbilder','einkauf','ansicht','tablet-stahl','tablet-keller'].map(o =>
+          ['admin','ausbilder','einkauf','ansicht','tablet-stahl'].map(o =>
             '<option value="'+o+'"'+(o===r?' selected':'')+'>'+rollenName(o)+'</option>').join('')+
         '</select></td>'+
-        '<td>'+ortKnoepfe(mail)+'</td>'+
         '<td style="white-space:nowrap">'+
           '<button class="mini" style="width:auto;padding:2px 8px;font-size:11px" '+
             'onclick="passwortMail(\''+mail+'\')" title="Mail zum Zurücksetzen schicken">'+
@@ -2700,28 +2396,12 @@ function rollenZeichnen(){
           '<button class="mini" onclick="rolleEntfernen(\''+mail+'\')" '+
             'title="Zuordnung entfernen">&times;</button>'+
         '</td></tr>').join('')
-    : '<tr><td colspan="4" style="padding:16px;color:var(--text-hell)">Noch keine Zuordnung. '+
+    : '<tr><td colspan="3" style="padding:16px;color:var(--text-hell)">Noch keine Zuordnung. '+
       'Alle Konten haben vollen Zugriff.</td></tr>';
 }
 const rollenName = r => ({'admin':'Voller Zugriff','ausbilder':'Ausbilder','einkauf':'Einkauf',
                           'ansicht':'Nur Einsicht',
-                          'tablet-stahl':'Tablet Stahllager',
-                          'tablet-keller':'Tablet Keller'}[r] || r);
-
-function ortKnoepfe(mail){
-  const gesetzt = rollenOrte[mail] || [];
-  return Object.keys(ORTE).map(o =>
-    '<button class="mini" style="width:auto;padding:2px 8px;font-size:11px;'+
-    (gesetzt.includes(o)? 'background:'+ORTE[o].farbe+';color:#fff;border-color:'+ORTE[o].farbe : '')+
-    '" onclick="ortUm(\''+mail+'\',\''+o+'\')" title="'+ORTE[o].name+'">'+ORTE[o].kurz+'</button>').join(' ')+
-    (gesetzt.length? '' : ' <span class="sub">(alle)</span>');
-}
-function ortUm(mail, o){
-  const liste = rollenOrte[mail] || [];
-  rollenOrte[mail] = liste.includes(o) ? liste.filter(x => x !== o) : liste.concat([o]);
-  if(!rollenOrte[mail].length) delete rollenOrte[mail];
-  rollenSpeichern('Standortrechte für '+mail+' geändert');
-}
+                          'tablet-stahl':'Tablet Stahllager'}[r] || r);
 
 function rolleHinzu(){
   const mail = el('rMail').value.trim().toLowerCase();
@@ -2785,7 +2465,7 @@ function rolleEntfernen(mail){
 function rollenSpeichern(text){
   if(cloudAktiv && angemeldet)
     db.collection('stahllager').doc('rollen')
-      .set({tabelle:rollenTabelle, orte:rollenOrte, sperrcode, clientId}).catch(()=>{});
+      .set({tabelle:rollenTabelle, sperrcode, clientId}).catch(()=>{});
   if(text){ logge(text); notiere('Verwaltung','','',null,null,text); }
   rollenZeichnen();
 }
@@ -2826,53 +2506,6 @@ function personenSpeichern(text){
   logge(text); personenZeichnen();
 }
 
-/* --- Lieferanten --- */
-function firmenZeichnen(){
-  const feld = el('firmenBody'); if(!feld) return;
-  const zaehler = {};
-  artikel.forEach(a => { if(a.eigentum === 'extern' && a.firma)
-    zaehler[a.firma] = (zaehler[a.firma]||0) + 1; });
-  // Firmen, die an Artikeln hängen, aber noch nicht in der Liste stehen
-  Object.keys(zaehler).forEach(n => { if(!firmaFind(n)) firmen.push({name:n, mail:'', ansprech:''}); });
-  feld.innerHTML = firmen.length
-    ? firmen.slice().sort((a,b) => a.name.localeCompare(b.name,'de')).map(f =>
-        '<tr><td><b>'+f.name+'</b></td>'+
-        '<td><input type="text" value="'+(f.ansprech||'')+'" style="width:100%" '+
-          'onchange="firmaFeld(\''+f.name+'\',\'ansprech\',this.value)"></td>'+
-        '<td><input type="text" value="'+(f.mail||'')+'" style="width:100%" '+
-          'placeholder="fehlt noch" onchange="firmaFeld(\''+f.name+'\',\'mail\',this.value)"></td>'+
-        '<td class="num">'+(zaehler[f.name]||0)+'</td>'+
-        '<td><button class="mini" onclick="firmaWeg(\''+f.name+'\')">&times;</button></td></tr>').join('')
-    : '<tr><td colspan="5" style="padding:16px;color:var(--text-hell)">Noch keine Lieferanten. '+
-      'Sie entstehen automatisch, sobald ein Artikel als externe Konsignationsware angelegt wird.</td></tr>';
-}
-function firmaHinzu(){
-  const name = el('fName').value.trim();
-  if(!name) return alert('Bitte einen Firmennamen eingeben.');
-  if(firmaFind(name)) return alert('Diese Firma steht schon in der Liste.');
-  firmen.push({name, mail: el('fMail').value.trim(), ansprech: el('fAnsprech').value.trim()});
-  el('fName').value=''; el('fMail').value=''; el('fAnsprech').value='';
-  firmenSpeichern('Lieferant '+name+' aufgenommen');
-}
-function firmaFeld(name, feld, wert){
-  const f = firmaFind(name); if(!f) return;
-  f[feld] = wert.trim();
-  firmenSpeichern('Angaben zu '+name+' geändert');
-}
-function firmaWeg(name){
-  const betroffen = artikel.filter(a => a.firma === name).length;
-  if(!confirm('"'+name+'" aus der Liste entfernen?'+
-     (betroffen? '\n\n'+betroffen+' Artikel sind dieser Firma zugeordnet und behalten den Eintrag.':''))) return;
-  firmen = firmen.filter(f => f.name !== name);
-  firmenSpeichern('Lieferant '+name+' entfernt');
-}
-function firmenSpeichern(text){
-  if(cloudAktiv && angemeldet && !nurLesen())
-    db.collection('stahllager').doc('firmen').set({liste:firmen, clientId}).catch(()=>{});
-  if(text) logge(text);
-  firmenZeichnen();
-}
-
 /* --- Sperrcode --- */
 function codeZeichnen(){
   const a = el('codeAnzeige'); if(!a) return;
@@ -2895,67 +2528,6 @@ function codePruefen(zweck){
 }
 
 /* --- Sicherungen --- */
-function umzugStarten(){
-  if(!cloudAktiv || !angemeldet) return alert('Dafür wird eine Verbindung zur Datenbank gebraucht.');
-  if(rolle !== 'admin') return alert('Das darf nur ein Konto mit vollem Zugriff.');
-  cloudStatus('übernehme alte Daten …', '#E4B23C');
-  Promise.all([
-    db.collection('lager').doc('artikel').get(),
-    db.collection('lager').doc('bestand').get(),
-    db.collection('stahllager').doc('keller').get()
-  ]).then(([sa, sb, sk]) => {
-    const alteArtikel = sa.exists ? (sa.data().artikel || []) : [];
-    const alteBestaende = sb.exists ? (sb.data().bestand || {}) : {};
-    const alteBewegungen = sb.exists ? (sb.data().bewegungen || []) : [];
-    const alterKeller = sk.exists ? (sk.data().artikel || []) : [];
-
-    let nr = 0;
-    artikel.forEach(a => { const m = String(a.nr).match(/(\d+)\s*$/); if(m) nr = Math.max(nr, +m[1]); });
-    const neueNr = () => 'A-' + String(++nr).padStart(4,'0');
-
-    const stapel = db.batch();
-    let neuA = 0, neuB = 0;
-
-    alteArtikel.forEach(a => {
-      if(artFind(a.nr)) return;
-      artikel.push(a); neuA++;
-      stapel.set(db.collection('artikel').doc(a.nr), a);
-    });
-    Object.entries(alteBestaende).forEach(([ort, eintraege]) => {
-      Object.entries(eintraege).forEach(([anr, b]) => {
-        if(ortBestand(ort, anr)) return;
-        bestand[ort] = bestand[ort] || {};
-        bestand[ort][anr] = {q:b.q||0, platz:b.platz||'', min:b.min||0};
-        neuB++;
-        stapel.set(db.collection('bestand').doc(bestandId(ort, anr)),
-                   {ort, nr:anr, ...bestand[ort][anr]});
-      });
-    });
-    // Kellerliste der ersten Fassung
-    alterKeller.forEach(k => {
-      if(artikel.some(a => a.name === k.name)) return;
-      const n = neueNr();
-      const a = {nr:n, name:k.name, kat:k.kat||'', einheit:k.einheit||'Stück', preis:0, notiz:k.notiz||'', preise:[]};
-      artikel.push(a); neuA++;
-      stapel.set(db.collection('artikel').doc(n), a);
-      bestand.geb30 = bestand.geb30 || {};
-      bestand.geb30[n] = {q:k.q||0, platz:k.platz||'', min:k.min||0};
-      neuB++;
-      stapel.set(db.collection('bestand').doc(bestandId('geb30', n)), {ort:'geb30', nr:n, ...bestand.geb30[n]});
-    });
-
-    return stapel.commit().then(() => {
-      alteBewegungen.slice(-500).forEach(bw => db.collection('bewegungen').add(bw).catch(()=>{}));
-      bewegungen = bewegungen.concat(alteBewegungen);
-      logge('Übernahme: '+neuA+' Artikel, '+neuB+' Bestände');
-      notiere('System','','',null,null,'Alte Daten übernommen: '+neuA+' Artikel, '+neuB+' Bestände');
-      cloudStatus('Übernahme abgeschlossen', '#7ED957');
-      alert('Übernommen: '+neuA+' Artikel und '+neuB+' Standortbestände.');
-      zeichneArtikel();
-    });
-  }).catch(e => { cloudStatus('Übernahme fehlgeschlagen', '#B3261E'); alert('Fehler: '+(e.code||e)); });
-}
-
 function backupsZeichnen(){
   const feld = el('backupListe'); if(!feld) return;
   feld.innerHTML = [1,2,3].map(nr => {
@@ -2964,7 +2536,7 @@ function backupsZeichnen(){
       (nr<=3? nr:'')+'</b><div class="details">noch nicht belegt</div></div></div>';
     return '<div class="bslot"><div><b>'+new Date(b.stand).toLocaleString('de-DE')+'</b>'+
       '<div class="details">'+(b.art || SLOT_ART[nr])+'ssicherung &middot; von '+(b.von||'unbekannt')+
-      ' &middot; '+(b.faecher||0)+' Stahl-F&auml;cher, '+(b.artikel||0)+' Artikel</div></div>'+
+      ' &middot; '+(b.faecher||0)+' F&auml;cher</div></div>'+
       '<button class="btn sek" onclick="backupZurueck('+nr+')">Wiederherstellen</button></div>';
   }).join('');
 }
@@ -3017,33 +2589,32 @@ function mailEinstellungenSpeichern(){
 }
 
 function berichtCsv(){
-  const zeilen = [];
-  zeilen.push('Standort;Nummer;Artikel;Kategorie;Einheit;Bestand;Platz;Mindestbestand;Preis;Wert;Status');
-  ALLGEMEIN.forEach(o => {
-    Object.entries(bestand[o]||{}).forEach(([nr,b]) => {
-      const a = artFind(nr) || {name:'(unbekannt)', kat:'', einheit:'', preis:0};
-      const st = b.q === 0 ? 'leer' : (b.min>0 && b.q<=b.min ? 'nachbestellen' : 'ok');
-      zeilen.push([ORTE[o].name, nr, a.name, a.kat, a.einheit, b.q, b.platz||'',
-        b.min||0, de(a.preis||0,2), de(b.q*(a.preis||0),2), st].join(';'));
-    });
-  });
-  // Stahllager als eigener Block
-  alleItems().forEach(i => {
-    zeilen.push([ORTE.stahl.name, '', i.m, i.gruppe, 'Stangen',
-      istGenug(i)? 'genug' : i.q, 'R'+i.r+'/F'+i.fa, '', '', '', ''].join(';'));
+  const lg = stange();
+  const zeilen = ['Reihe;Fach;Lager;Gruppe;Mass;Breite;Dicke;Werkstoff;Stangen;Meter;Rest mm;Status'];
+  const mind = mindest();
+  alleItems().sort((a,b) => a.r-b.r || a.fa-b.fa).forEach(i => {
+    const st = istGenug(i) ? 'genug'
+             : i.q === 0 ? 'leer'
+             : (mind > 0 && i.q <= mind ? 'nachbestellen' : 'ok');
+    zeilen.push([i.r, i.fa, i.fa<=7?1:2, i.gruppe, i.m, breite(i.m), dicke(i.m), i.wst||'',
+      istGenug(i)? 'genug' : i.q,
+      istGenug(i)? '' : (i.q*lg/1000).toFixed(1).replace('.',','),
+      i.rest || 0, st].join(';'));
   });
   return zeilen.join('\n');
 }
 
 function berichtZusammenfassung(){
-  let knapp = 0, leer = 0, wert = 0, pos = 0;
-  ALLGEMEIN.forEach(o => Object.entries(bestand[o]||{}).forEach(([nr,b]) => {
+  const mind = mindest();
+  let knapp = 0, leer = 0, stangen = 0, pos = 0;
+  alleItems().forEach(i => {
     pos++;
-    const a = artFind(nr) || {preis:0};
-    wert += b.q * (a.preis||0);
-    if(b.q === 0) leer++; else if(b.min>0 && b.q<=b.min) knapp++;
-  }));
-  return {pos, knapp, leer, wert};
+    if(istGenug(i)) return;
+    stangen += i.q;
+    if(i.q === 0) leer++; else if(mind > 0 && i.q <= mind) knapp++;
+  });
+  const faecher = lager.filter(f => f.items.length).length;
+  return {pos, knapp, leer, stangen, faecher};
 }
 
 function tagesberichtSenden(automatisch){
@@ -3053,14 +2624,14 @@ function tagesberichtSenden(automatisch){
   const heute = new Date().toLocaleDateString('de-DE');
   const text =
     'Bestandsbericht vom '+heute+'\n\n'+
-    z.pos+' Positionen im allgemeinen Lager\n'+
-    z.knapp+' Artikel unter Mindestbestand\n'+
-    z.leer+' Artikel komplett leer\n'+
-    'Lagerwert: '+de(z.wert,2)+' EUR\n\n'+
+    z.pos+' Ma\u00dfe in '+z.faecher+' belegten F\u00e4chern\n'+
+    z.stangen+' Stangen insgesamt\n'+
+    z.knapp+' Ma\u00dfe am oder unter dem Mindestbestand\n'+
+    z.leer+' Ma\u00dfe komplett leer\n\n'+
     'Die vollständige Liste liegt als CSV im Anhang.';
   const nutzlast = {
     an: mailEinst.an,
-    betreff: 'Bestandsbericht Lager '+heute,
+    betreff: 'Bestandsbericht Stahllager '+heute,
     text,
     dateiname: 'Bestand_'+datum()+'.csv',
     csv: berichtCsv()
@@ -3107,15 +2678,14 @@ function backupJetzt(automatisch, artWunsch){
   const inhalt = {
     stand: new Date().toISOString(),
     von: el('benutzer').value.trim() || (angemeldet.email||''),
-    faecher: lager.length, artikel: artikel.length, art: SLOT_ART[slot],
-    lager, keller, verbrauch, personen, rollenTabelle, rollenOrte,
-    artikel, bestand, bewegungen,
+    faecher: lager.length, art: SLOT_ART[slot],
+    lager, verbrauch, personen, rollenTabelle, archiv: archiv.slice(0, 2000),
     stange: stange(), werkstoff: stdWst(), slot, clientId
   };
   db.collection('backups').doc('slot'+slot).set(inhalt).then(() => {
     backups = backups.filter(b => b.slot !== slot);
     backups.push({slot, stand:inhalt.stand, von:inhalt.von, faecher:inhalt.faecher,
-                  artikel:inhalt.artikel, art:inhalt.art});
+                  art:inhalt.art});
     backupsZeichnen();
     if(!automatisch){
       logge('Sicherung auf Platz '+slot+' abgelegt');
@@ -3135,17 +2705,13 @@ function backupZurueck(slot){
     if(!sn.exists) return alert('Sicherung nicht gefunden.');
     const d = sn.data();
     if(d.lager) lager = d.lager;
-    if(d.keller) keller = d.keller;
-    if(d.artikel) artikel = d.artikel;
-    if(d.bestand) bestand = d.bestand;
-    if(d.bewegungen) bewegungen = d.bewegungen;
     if(d.verbrauch) verbrauch = d.verbrauch;
     if(d.stange) el('stangeLaenge').value = d.stange;
     if(d.werkstoff) el('stdWerkstoff').value = d.werkstoff;
     logge('Sicherung von Platz '+slot+' wiederhergestellt');
     notiere('Sicherung','','',null,null,'Platz '+slot+' wiederhergestellt (Stand '+
             new Date(d.stand).toLocaleString('de-DE')+')');
-    cloudSpeichern(true); kellerSpeichern(); alles();
+    cloudSpeichern(true); alles();
     alert('Wiederhergestellt.');
   }).catch(e => alert('Fehler: '+e.code));
 }
@@ -3154,7 +2720,7 @@ function backupsLauschen(){
   db.collection('backups').onSnapshot(s => {
     backups = [];
     s.forEach(dok => { const d = dok.data();
-      backups.push({slot:d.slot, stand:d.stand, von:d.von, faecher:d.faecher, artikel:d.artikel}); });
+      backups.push({slot:d.slot, stand:d.stand, von:d.von, faecher:d.faecher}); });
     backupsZeichnen();
     tagessicherung();
   }, () => {});
@@ -3436,30 +3002,25 @@ function weBuchen(){
 }
 
 /* ---------- Rollen, Personen, Standby ---------- */
-let rolle = 'admin';           // admin | tablet-stahl | tablet-keller
+let rolle = 'admin';           // admin | ausbilder | einkauf | ansicht | tablet-stahl
 let personen = [];             // Namensliste fuer die Tablets
 let standbyTimer = null, standbyAktiv = false;
 const STANDBY_MINUTEN = 4;
 
-const istTablet = () => rolle === 'tablet-stahl' || rolle === 'tablet-keller';
+const istTablet = () => rolle === 'tablet-stahl';
 const nurLesen  = () => rolle === 'ansicht';
 
 function rolleAnwenden(){
   el('tabletBand').style.display = istTablet() ? 'flex' : 'none';
-  if(istTablet()){
-    standortSetzen(rolle === 'tablet-stahl' ? 'stahl' : 'geb30');
-    standbyAn();
-  }
+  if(istTablet()) standbyAn();
   sichtbarkeitSetzen();
 }
 
 /* Welche Reiter darf diese Rolle sehen? */
 function erlaubteAnsichten(){
   if(rolle === 'tablet-stahl')  return ['plan','bestand','stueck','zaehlen'];
-  if(rolle === 'tablet-keller') return ['artikel'];
-  if(rolle === 'ansicht')       return ['plan','bestand','stueck','banf','verbrauch',
-                                        'artikel','abanf','averbrauch'];
-  if(rolle === 'einkauf')       return ['artikel','abanf','averbrauch','plan','bestand','archiv'];
+  if(rolle === 'ansicht')       return ['plan','bestand','stueck','banf','verbrauch'];
+  if(rolle === 'einkauf')       return ['plan','bestand','banf','verbrauch','archiv'];
   /* Ausbilder: wie voller Zugriff, nur ohne Verwaltung, Daten und Archiv.
      Bewusst als "alles ausser" geschrieben - kommt spaeter ein Reiter dazu,
      sieht der Ausbilder ihn automatisch mit. */
@@ -3467,24 +3028,9 @@ function erlaubteAnsichten(){
   return null;   // admin: alles
 }
 
-/* Welche Standorte darf dieses Konto sehen? Leer = alle. */
-function erlaubteOrte(){
-  const alle = Object.keys(ORTE);
-  if(rolle === 'tablet-stahl') return ['stahl'];
-  const e = (rollenOrte[(angemeldet ? (angemeldet.email||'').toLowerCase() : '')] || []);
-  return e.length ? alle.filter(o => e.includes(o)) : alle;
-}
-
-const STAHL_ANSICHTEN = ['plan','bestand','stueck','zaehlen','banf','verbrauch'];
-const ALLG_ANSICHTEN  = ['artikel','abanf','averbrauch'];
-
 function ansichtErlaubt(v){
   const erlaubt = erlaubteAnsichten();
-  if(erlaubt && !erlaubt.includes(v)) return false;
-  if(v === 'keller') return false;                       // abgelöst durch den Artikelstamm
-  if(standort === 'stahl' && ALLG_ANSICHTEN.includes(v)) return false;
-  if(standort && standort !== 'stahl' && STAHL_ANSICHTEN.includes(v)) return false;
-  return true;
+  return !(erlaubt && !erlaubt.includes(v));
 }
 
 function sichtbarkeitSetzen(){
@@ -3519,7 +3065,7 @@ function standbyAn(){
       '<div class="uhr" id="sbUhr">'+jetzt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'</div>'+
       '<div class="datum">'+jetzt.toLocaleDateString('de-DE',
         {weekday:'long',day:'2-digit',month:'long',year:'numeric'})+'</div>'+
-      '<div class="ort">'+(ORTE[standort] ? ORTE[standort].name : 'Lagerverwaltung')+'</div>'+
+      '<div class="ort">Stahllager &middot; Ausbildung Geb. 649</div>'+
       '<div class="tipp">Zum Entsperren tippen</div>'+
     '</div></div>';
   clearInterval(window.__uhrTakt);
@@ -3580,1841 +3126,9 @@ function standbyNeuStarten(){
 ['click','keydown','touchstart','mousemove'].forEach(e =>
   document.addEventListener(e, standbyNeuStarten, {passive:true}));
 
-/* ---------- Auswertung nach Verwendung ---------- */
-function zweckTabelle(buchungen){
-  const mitZweck = buchungen.filter(b => b.zweck);
-  const karte = el('zweckKarte');
-  if(!mitZweck.length){
-    if(karte) karte.style.display = buchungen.length ? '' : 'none';
-    el('zweckBody').innerHTML =
-      '<tr><td colspan="5" style="padding:16px;color:var(--text-hell)">'+
-      'Bisher wurde bei keiner Entnahme eine Verwendung eingetragen. '+
-      'Das Feld erscheint beim Ausbuchen und ist freiwillig.</td></tr>';
-    return;
-  }
-  if(karte) karte.style.display = '';
-  const je = {};
-  mitZweck.forEach(b => {
-    const z = b.zweck;
-    je[z] = je[z] || {anzahl:0, menge:0, wert:0, teile:{}};
-    je[z].anzahl++;
-    je[z].menge += b.n;
-    je[z].wert  += b.n * preisAm(b.nr, b.d);
-    je[z].teile[b.nr] = (je[z].teile[b.nr]||0) + b.n;
-  });
-  const zeilen = Object.entries(je).sort((a,b) => b[1].menge - a[1].menge).slice(0,40);
-  el('zweckBody').innerHTML = zeilen.map(([z,d]) => {
-    const top = Object.entries(d.teile).sort((a,b)=>b[1]-a[1]).slice(0,3)
-      .map(([nr,n]) => { const a = artFind(nr) || {name:nr}; return a.name+' ('+n+')'; }).join(', ');
-    return '<tr><td><b>'+z+'</b></td>'+
-      '<td class="num">'+d.anzahl+'</td>'+
-      '<td class="num"><b>'+d.menge+'</b></td>'+
-      '<td class="num preisSpalte'+(darfPreise()?'':' verstecke')+'">'+
-        (d.wert? de(d.wert,2)+' €':'')+'</td>'+
-      '<td style="color:var(--text-hell)">'+top+'</td></tr>';
-  }).join('');
-}
-
-/* ---------- Standorte und Artikelstamm ---------- */
-const ORTE = {
-  ausbildung: {name:'Ausbildung',            kurz:'AUS', farbe:'#0F4C81',
-               text:'Allgemeines Lager der Ausbildungswerkstatt'},
-  geb30:      {name:'Gebäude 30 – Keller',   kurz:'G30', farbe:'#7A5C2E',
-               text:'Chaoslager · Verbrauchsmaterial und Sonstiges'},
-  feuerwehr:  {name:'Werkfeuerwehr',         kurz:'FW',  farbe:'#B3261E',
-               text:'Ausrüstung und Verbrauchsmaterial'},
-  pdkonsi:    {name:'Pack und Düse – Konsi', kurz:'KON', farbe:'#2E8B57',
-               text:'Konsignationslager · Schubladenschränke mit Bauteilen'},
-  pdallg:     {name:'Pack und Düse – Allgemein', kurz:'PDA', farbe:'#5B9E6E',
-               text:'Hygieneartikel, Büromaterial und Sonstiges'},
-  stahl:      {name:'Stahllager',            kurz:'ST',  farbe:'#6A3D9A',
-               text:'Flach- und Vierkantstahl · Ausbildung intern'}
-};
-const ALLGEMEIN = ['ausbildung','geb30','feuerwehr','pdkonsi','pdallg'];
-
-let artikel = [];      // {nr, name, kat, einheit, preis, notiz}
-let bestand = {};      // { ortId: { nr: {q, platz, min} } }
-let bewegungen = [];   // {d, nr, n, ort, zweck}
-let meldungen = {};    // { 'ort|nr': 'JJJJ-MM-TT' }
-let warenkorb = [];    // {nr, ort, menge, bem, wann, wer, freigabe}
-
-let korbErinnert = '';
-
-const ortName = id => (ORTE[id] || {}).name || id;
-const artFind = nr => artikel.find(a => a.nr === nr);
-const ortBestand = (ort, nr) => ((bestand[ort]||{})[nr]) || null;
-const darfPreise = () => rolle === 'admin' || rolle === 'einkauf' || rolle === 'ausbilder';
-
-/* Preis, der an einem bestimmten Tag galt */
-function preisAm(nr, datumIso){
-  const a = artFind(nr);
-  if(!a) return 0;
-  const h = (a.preise || []).filter(p => p.ab <= datumIso).sort((x,y) => x.ab.localeCompare(y.ab));
-  if(h.length) return h[h.length-1].preis;
-  const erste = (a.preise || [])[0];
-  if(erste && erste.ab > datumIso) return erste.vorher || 0;
-  return a.preis || 0;
-}
-
-/* Nummernkreis je Standort: Pack und Düse führt eigene Teilenummern,
-   die anderen Lager bekommen automatisch A-0001 aufwärts. */
-/* Lager mit eigenen Teilenummern statt automatischer A-Nummern */
-const NUMMERNKREIS = {pdkonsi: {frei:true}, pdallg: {frei:true}};
-
-/* Nur das Konsignationslager hat Schubladenschränke und fremde Ware */
-const istKonsiLager = () => standort === 'pdkonsi';
-
-/* ---------------------------------------------------------------
-   Ein Teil gibt es oft in mehreren Ausfuehrungen. Auf dem Schild in
-   der Schublade steht z. B.:  1004 Mitnehmerfuehrung  0.3 0.6 1.2 2.4
-   Jede Groesse wird ein eigener Eintrag mit eigenem Bestand und
-   eigenem Meldebestand, denn sonst nuetzt die Zahl nichts: "1004: 23
-   Stueck" hilft nicht, wenn ausgerechnet die 1.2er leer sind.
-   Nummer 1004 + Groesse 0.6 ergibt die Artikelnummer 1004-0.6
-   --------------------------------------------------------------- */
-const sauber = t => String(t||'').trim().replace(/\//g,'_');
-/* Nummer aus Teilenummer, Kennung und Groesse: 1004 + F + 0.6 -> 1004-F-0.6 */
-const artNummer = (basis, f, groesse) => [sauber(basis), sauber(f), sauber(groesse)]
-  .filter(Boolean).join('-');
-/* Anzeigename: Mitnehmerfuehrung F 0.6 */
-const bezVon = (grund, f, groesse) => [String(grund||'').trim(),
-  String(f||'').trim(), String(groesse||'').trim()].filter(Boolean).join(' ');
-/* Kennung und Groesse kurz zusammen, fuer Chips und Listen */
-const ausfVon = a => a ? [String(a.f||'').trim(), String(a.groesse||'').trim()]
-  .filter(Boolean).join(' ') : '';
-const basisVon = a => a && (a.basisNr || String(a.nr||''));
-const grundVon = a => a && (a.grundname || a.name || '');
-
-/* Alle Ausfuehrungen einer Teilenummer, aufsteigend sortiert */
-const varianten = basis => artikel.filter(a => basisVon(a) === basis).sort(ausfSort);
-const ausfSort = (x,y) => String(x.f||'').localeCompare(String(y.f||''),'de') ||
-  groessenWert(x.groesse) - groessenWert(y.groesse) ||
-  String(x.groesse||'').localeCompare(String(y.groesse||''),'de',{numeric:true});
-
-/* Sortierung: 0.3 vor 0.6 vor 1.2 vor 2.4, danach die 2x-Ausfuehrungen */
-function groessenWert(g){
-  if(!g) return -1;
-  const m = String(g).match(/^(\d+)\s*x\s*(.+)$/i);
-  const faktor = m ? +m[1] : 1;
-  const zahl = parseFloat(String(m ? m[2] : g).replace(',','.')) || 0;
-  return faktor * 10000 + zahl;
-}
-
-/* Schon vergebene Groessen als Vorschlagsliste */
-function groessenVorschlaege(){
-  return [...new Set(artikel.map(a => a.groesse).filter(Boolean))]
-    .sort((a,b) => groessenWert(a) - groessenWert(b))
-    .map(g => '<option value="'+String(g).replace(/"/g,'&quot;')+'">').join('');
-}
-/* Schon vergebene Kennungen (F, G, ...) als Vorschlagsliste */
-function kennungVorschlaege(){
-  return [...new Set(artikel.map(a => a.f).filter(Boolean))]
-    .sort((a,b) => String(a).localeCompare(String(b),'de'))
-    .map(k => '<option value="'+String(k).replace(/"/g,'&quot;')+'">').join('');
-}
-
-/* Schubladenschränke: 3 Schränke, je 2 Spalten mit 10 Schubladen untereinander */
-const SCHRAENKE = 3, SPALTEN = 2, SCHUBLADEN = 10;
-const platzKonsi = (sc, sp, sch) => 'S'+sc+' / Sp'+sp+' / '+String(sch).padStart(2,'0');
-function platzZerlegen(platz){
-  const t = String(platz||'').trim();
-  let m = t.match(/^S(\d+)\s*\/\s*Sp(\d+)\s*\/\s*(\d+)$/);
-  if(m) return {sc:+m[1], sp:+m[2], sch:+m[3]};
-  m = t.match(/^S(\d+)\s*\/\s*R(\d+)\s*\/\s*(\d+)$/);   // frühere Schreibweise
-  if(m) return {sc:+m[1], sp:+m[2], sch:+m[3]};
-  return null;
-}
-
-/* Firmen, deren Ware bei uns im Konsi liegt */
-let firmen = [];   // {name, mail, ansprech}
-const firmaFind = n => firmen.find(f => f.name === n);
-
-function naechsteNummer(){
-  const kreis = NUMMERNKREIS[standort];
-  if(kreis && kreis.frei) return '';        // leer = Nummer wird von Hand eingetragen
-  let max = 0;
-  artikel.forEach(a => { const m = String(a.nr).match(/^A-(\d+)$/); if(m) max = Math.max(max, +m[1]); });
-  return 'A-' + String(max + 1).padStart(4, '0');
-}
-const eigeneNummer = () => !!(NUMMERNKREIS[standort] || {}).frei;
-
-function preisSpaltenSetzen(){
-  document.querySelectorAll('.preisSpalte').forEach(e =>
-    e.classList.toggle('verstecke', !darfPreise()));
-}
-
-/* --- Artikelliste eines Standorts --- */
-let ansichtArt = 'liste';
-let eigentumFilter = '';
-
-function zeichneArtikel(){
-  preisSpaltenSetzen();
-  const ort = standort;
-  el('bereichWahl').style.display = istKonsiLager() ? 'flex' : 'none';
-  el('eigenSpalte').style.display = istKonsiLager() ? '' : 'none';
-  if(istKonsiLager() && ansichtArt === 'raster'){
-    el('schubRaster').classList.remove('verstecke');
-    el('artTabelle').classList.add('verstecke');
-    zeichneSchubladen();
-    return;
-  }
-  el('schubRaster').classList.add('verstecke');
-  el('artTabelle').classList.remove('verstecke');
-  el('artKopf').textContent = 'Bestand \u00b7 ' + ortName(ort);
-  const eigene = bestand[ort] || {};
-  const kats = [...new Set(artikel.map(a => a.kat).filter(Boolean))].sort();
-  const gew = el('artKat').value;
-  el('artKat').innerHTML = '<option value="">alle Kategorien</option>' +
-    kats.map(k => '<option'+(k===gew?' selected':'')+'>'+k+'</option>').join('');
-
-  const suche = el('artSuche').value.trim().toLowerCase();
-  const nurKnapp = el('artKnapp').checked;
-  const alleZeigen = el('artAlle').checked;
-
-  let liste = artikel.filter(a => alleZeigen || eigene[a.nr]);
-  if(istKonsiLager() && eigentumFilter)
-    liste = liste.filter(a => (a.eigentum || 'iwb') === eigentumFilter);
-  if(suche) liste = liste.filter(a =>
-    (a.nr+' '+a.name+' '+(a.f||'')+' '+(a.groesse||'')+' '+a.kat+' '+(a.notiz||'')+' '+
-     ((eigene[a.nr]||{}).platz||'')).toLowerCase().includes(suche));
-  if(el('artKat').value) liste = liste.filter(a => a.kat === el('artKat').value);
-  if(nurKnapp) liste = liste.filter(a => { const b = eigene[a.nr]; return b && b.min > 0 && b.q <= b.min; });
-  liste.sort((a,b) => (String((eigene[a.nr]||{}).platz||'')).localeCompare(
-      String((eigene[b.nr]||{}).platz||''),'de',{numeric:true}) ||
-      grundVon(a).localeCompare(grundVon(b),'de') ||
-      String(basisVon(a)).localeCompare(String(basisVon(b)),'de',{numeric:true}) ||
-      ausfSort(a,b));
-
-  const gefuehrt = artikel.filter(a => eigene[a.nr]);
-  const knapp = gefuehrt.filter(a => eigene[a.nr].min > 0 && eigene[a.nr].q <= eigene[a.nr].min).length;
-  const leer  = gefuehrt.filter(a => eigene[a.nr].q === 0).length;
-  const wert  = gefuehrt.reduce((s,a) => s + (eigene[a.nr].q * (a.preis||0)), 0);
-  el('artKennzahlen').innerHTML =
-    kz(gefuehrt.length,'Artikel hier') +
-    (istKonsiLager()? kz(gefuehrt.filter(a => a.eigentum==='extern').length,'davon extern')
-                    : kz(artikel.length,'im Stamm')) +
-    kz(kats.length,'Kategorien') +
-    (darfPreise()? kz(de(wert,0)+' \u20ac','Lagerwert') : '') +
-    kz(knapp,'knapp', knapp>0) + kz(leer,'leer', leer>0);
-
-  el('artBody').innerHTML = liste.map(a => {
-    const b = eigene[a.nr];
-    const hier = !!b;
-    const d = hier ? dringlichkeit(b) : null;
-    const st = !hier ? '<span class="pill neu">nicht hier</span>'
-      : !d ? '<span class="pill ok">ok</span>'
-      : d.stufe === 'leer' ? '<span class="pill krit">leer</span>'
-      : d.stufe === 'kritisch' ? '<span class="pill krit">kritisch</span>'
-      : '<span class="pill warn">nachbestellen</span>';
-    const buchen = (!hier || nurLesen()) ? '<span class="sub">–</span>' :
-      '<button class="mini" onclick="artBuchen(\''+a.nr+'\',-1)">&minus;</button> '+
-      '<input class="menge" type="number" value="'+b.q+'" onchange="artSetzen(\''+a.nr+'\',this.value)"> '+
-      '<button class="mini" onclick="artBuchen(\''+a.nr+'\',1)">+</button>';
-    return '<tr><td><b>'+basisVon(a)+'</b>'+
-        (ausfVon(a)? '<span class="gnr">'+ausfVon(a)+'</span>':'')+'</td>'+
-      '<td>'+grundVon(a)+
-        (ausfVon(a)? ' <span class="eigentumChip iwb">'+ausfVon(a)+'</span>':'')+
-        (a.notiz? '<br><span class="sub">'+a.notiz+'</span>':'')+'</td>'+
-      '<td style="color:var(--text-hell)">'+(a.kat||'')+'</td>'+
-      '<td>'+(hier? (b.platz||'') : '')+'</td>'+
-      '<td class="num"><b>'+(hier? b.q : '–')+'</b></td>'+
-      '<td style="color:var(--text-hell)">'+(a.einheit||'')+'</td>'+
-      '<td style="white-space:nowrap">'+buchen+'</td>'+
-      '<td class="num">'+(hier && b.min? b.min : '')+'</td>'+
-      '<td'+(istKonsiLager()? '':' style="display:none"')+'>'+
-        (a.eigentum === 'extern'
-          ? '<span class="eigentumChip extern">'+(a.firma||'extern')+'</span>'
-          : '<span class="eigentumChip iwb">IWB</span>')+'</td>'+
-      '<td class="num preisSpalte'+(darfPreise()?'':' verstecke')+'">'+(a.preis? de(a.preis,2)+' \u20ac':'')+'</td>'+
-      '<td class="num preisSpalte'+(darfPreise()?'':' verstecke')+'">'+
-        (hier && a.preis? de(b.q*a.preis,2)+' \u20ac':'')+'</td>'+
-      '<td>'+st+'</td>'+
-      '<td style="white-space:nowrap">'+((istTablet()||nurLesen())? '' :
-        '<button class="mini" onclick="artBearbeiten(\''+a.nr+'\')" title="Bearbeiten">&#9998;</button> '+
-        (hier? '<button class="mini" onclick="artHierWeg(\''+a.nr+'\')" title="Hier auslagern">&times;</button>'
-             : '<button class="mini" onclick="artHierRein(\''+a.nr+'\')" title="Hier aufnehmen">+</button>'))+
-      '</td></tr>';
-  }).join('') || '<tr><td colspan="13" style="padding:18px;color:var(--text-hell)">'+
-    (artikel.length? 'Nichts gefunden.' : 'Noch keine Artikel. Über „+ Artikel anlegen“ beginnen.')+'</td></tr>';
-}
-
-/* Wie kritisch ist ein Bestand? */
-function dringlichkeit(b){
-  if(!b || !(b.min > 0)) return null;
-  if(b.q === 0) return {stufe:'leer', text:'LEER', farbe:'var(--rot)'};
-  if(b.q <= b.min * 0.5) return {stufe:'kritisch', text:'kritisch', farbe:'var(--rot)'};
-  if(b.q <= b.min) return {stufe:'niedrig', text:'unter Meldebestand', farbe:'var(--gelb)'};
-  return null;
-}
-
-/* Statt sofort zu mailen: Vorschlag für den Warenkorb anbieten.
-   Höchstens einmal je Artikel und Tag, damit nicht bei jeder Buchung gefragt wird. */
-function meldungPruefen(nr, alt, neu){
-  const b = ortBestand(standort, nr);
-  const d = dringlichkeit(b);
-  if(!d) return;
-  if(alt !== null && alt <= (b.min||0) && neu >= alt) return;   // war schon drunter
-  if(korbHat(nr)) return;                                        // liegt schon im Korb
-  const heute = new Date().toISOString().slice(0,10);
-  const schluessel = standort+'|'+nr;
-  if((meldungen[schluessel]||'') === heute) return;              // heute schon gefragt
-  meldungen[schluessel] = heute;
-  meldungSpeichern();
-  const a = artFind(nr) || {name:'(unbekannt)', einheit:''};
-  notiere('Meldung', nr+' '+a.name, ortName(standort)+(b.platz? ' / '+b.platz:''),
-          null, b.q, 'Meldebestand '+b.min+' unterschritten ('+d.text+')');
-  setTimeout(() => korbFrage(nr, b, d), 260);
-}
-
-function meldungSpeichern(){
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  db.collection('stahllager').doc('meldungen').set({stand:meldungen, clientId}).catch(()=>{});
-}
-
-/* Fenster direkt nach der Entnahme */
-function korbFrage(nr, b, d){
-  const a = artFind(nr) || {name:'(unbekannt)', einheit:'', preis:0, notiz:''};
-  const vorschlag = Math.max(1, (b.min * 2) - b.q);
-  el('dialogBox').innerHTML =
-    '<div class="overlay"><div class="dialog" style="max-width:540px">'+
-    '<div class="kopf" style="background:'+(d.stufe==='niedrig'? '#8A6207':'#B3261E')+'">'+
-      '<div><b>Bestand unter Meldebestand</b><span>&nbsp;'+d.text+'</span></div></div>'+
-    '<div class="rumpf">'+
-      '<p style="margin:0 0 4px;font-size:19px;font-weight:700">'+a.name+'</p>'+
-      '<p class="sub" style="margin:0 0 16px">'+nr+
-        (b.platz? ' &middot; '+b.platz : '')+'</p>'+
-      '<div class="korbzahlen">'+
-        '<div><b>'+b.q+'</b><span>Bestand jetzt</span></div>'+
-        '<div><b>'+b.min+'</b><span>Meldebestand</span></div>'+
-      '</div>'+
-      (a.notiz? '<div class="hinweis" style="margin:14px 0 0"><b>Notiz:</b> '+a.notiz+'</div>':'')+
-      '<p class="sub" style="margin:16px 0 4px">Wie viel soll auf die Bestellliste?</p>'+
-      '<div class="abmenge" style="margin:4px 0 6px">'+
-        '<button onclick="korbPlus(-1)">&minus;</button>'+
-        '<input type="number" id="korbZahl" value="'+vorschlag+'" min="1">'+
-        '<button onclick="korbPlus(1)">+</button>'+
-      '</div>'+
-      '<p class="sub" style="margin:0;text-align:center">Vorschlag reicht bis zum doppelten '+
-        'Meldebestand &ndash; nach oben anpassen, wenn mehr gebraucht wird.</p>'+
-      '<label style="display:block;margin-top:14px">Bemerkung f&uuml;r den Einkauf '+
-        '<span class="sub">(freiwillig)</span>'+
-        '<input type="text" id="korbBem" placeholder="z. B. eilt, f&uuml;r Umbau Linie 3"></label>'+
-    '</div>'+
-    '<div class="fuss"><button class="btn sek" onclick="schliesse()">Nicht bestellen</button>'+
-    '<button class="btn gruen" onclick="korbAufnehmen(\''+nr+'\')">In die Bestellliste</button>'+
-    '</div></div></div>';
-  setTimeout(() => { const f = el('korbZahl'); if(f){ f.focus(); f.select(); } }, 60);
-}
-function korbPlus(d){
-  const f = el('korbZahl');
-  f.value = Math.max(1, (parseInt(f.value,10)||1) + d);
-}
-
-/* ---------- Bestellliste (Warenkorb) ---------- */
-const korbHat = nr => warenkorb.some(k => k.nr === nr && k.ort === standort);
-const korbEigene = () => warenkorb.filter(k => k.ort === standort);
-
-function korbAufnehmen(nr){
-  const menge = Math.max(1, parseInt(el('korbZahl').value,10) || 1);
-  const bem = el('korbBem') ? el('korbBem').value.trim() : '';
-  korbSetzen(nr, menge, bem);
-  schliesse();
-  const a = artFind(nr) || {name:nr};
-  cloudStatus('„'+a.name+'“ auf der Bestellliste', '#5A9E2F');
-}
-
-function korbSetzen(nr, menge, bem){
-  const vorhanden = warenkorb.find(k => k.nr === nr && k.ort === standort);
-  const a = artFind(nr) || {name:nr};
-  if(vorhanden){
-    vorhanden.menge = menge;
-    if(bem) vorhanden.bem = bem;
-  } else {
-    warenkorb.push({nr, ort:standort, menge, bem:bem||'',
-                    wann:new Date().toISOString(),
-                    wer: el('benutzer').value.trim() || (angemeldet? angemeldet.email : '')});
-    notiere('Bestellliste', nr+' '+a.name, ortName(standort), null, menge, 'aufgenommen'+(bem? ': '+bem:''));
-  }
-  korbSpeichern();
-}
-
-function korbWeg(nr, ort){
-  const k = warenkorb.find(x => x.nr === nr && x.ort === ort);
-  if(!k) return;
-  const a = artFind(nr) || {name:nr};
-  warenkorb = warenkorb.filter(x => !(x.nr === nr && x.ort === ort));
-  notiere('Bestellliste', nr+' '+a.name, ortName(ort), k.menge, null, 'von der Liste genommen');
-  korbSpeichern();
-}
-
-function korbSpeichern(){
-  korbAnzeigeAktualisieren();
-  if(!el('v-abanf').classList.contains('verstecke')) zeichneABanf();
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  db.collection('stahllager').doc('warenkorb')
-    .set({liste:warenkorb, erinnert:korbErinnert, clientId}).catch(()=>{});
-}
-
-/* Zähler am Reiter */
-function korbAnzeigeAktualisieren(){
-  const knopf = document.querySelector('nav button[data-ansicht="abanf"]');
-  if(!knopf) return;
-  const n = korbEigene().length;
-  knopf.innerHTML = 'Bestellanforderung' +
-    (n ? ' <span class="korbzaehler">'+n+'</span>' : '');
-}
-
-/* Schubladenansicht: je Schrank zwei Spalten, darin 10 Schubladen untereinander */
-function zeichneSchubladen(){
-  const eigene = bestand[standort] || {};
-  const belegung = {};
-  Object.entries(eigene).forEach(([nr,b]) => {
-    const t = platzZerlegen(b.platz);
-    if(!t) return;
-    const k = t.sc+'|'+t.sp+'|'+t.sch;
-    (belegung[k] = belegung[k] || []).push({nr, b, a: artFind(nr) || {name:nr, einheit:''}});
-  });
-  const ohnePlatz = Object.keys(eigene).filter(nr => !platzZerlegen(eigene[nr].platz));
-
-  let h = '<div class="schrankreihe">';
-  for(let sc = 1; sc <= SCHRAENKE; sc++){
-    h += '<div class="schrank"><h3>Schrank '+sc+'</h3><div class="spaltenpaar">';
-    for(let sp = 1; sp <= SPALTEN; sp++){
-      h += '<div class="schubspalte"><div class="splabel">Spalte '+sp+'</div>';
-      for(let sch = 1; sch <= SCHUBLADEN; sch++){
-        const inhalt = belegung[sc+'|'+sp+'|'+sch] || [];
-        /* Ausfuehrungen desselben Teils zusammenfassen */
-        const teile = [];
-        inhalt.forEach(x => {
-          const b = basisVon(x.a);
-          let g = teile.find(t => t.basis === b);
-          if(!g) teile.push(g = {basis:b, a:x.a, posten:[]});
-          g.posten.push(x);
-        });
-        teile.forEach(t => t.posten.sort((x,y) => ausfSort(x.a, y.a)));
-        teile.sort((x,y) => String(basisVon(x.a)).localeCompare(
-          String(basisVon(y.a)),'de',{numeric:true}));
-        let klasse = 'schub';
-        if(!inhalt.length) klasse += ' leer0';
-        else {
-          klasse += ' belegt';
-          if(inhalt.some(x => (x.a.eigentum||'iwb') === 'extern')) klasse += ' extern';
-          const stufen = inhalt.map(x => dringlichkeit(x.b)).filter(Boolean);
-          if(stufen.some(d => d.stufe !== 'niedrig')) klasse += ' kritisch';
-          else if(stufen.length) klasse += ' knapp';
-        }
-        const erster = inhalt[0];
-        const titel = teile.map(t => basisVon(t.a)+' '+grundVon(t.a)+': '+
-          t.posten.map(x => (x.a.groesse? x.a.groesse+' = ' : '')+x.b.q+
-            (x.b.min? ' (min '+x.b.min+')' : '')).join(', ')).join('  |  ');
-        h += '<div class="'+klasse+'" title="'+titel.replace(/"/g,'&quot;')+'" onclick="'+(erster
-              ? 'schubladeOeffnen('+sc+','+sp+','+sch+')'
-              : 'schubladeNeu('+sc+','+sp+','+sch+')')+'">'+
-          '<span class="snr">'+String(sch).padStart(2,'0')+'</span>'+
-          (teile.length
-            ? '<div class="sinhalt">'+
-              teile.map(t => {
-                const summe = t.posten.reduce((n,x) => n + (x.b.q||0), 0);
-                const einzeln = t.posten.length === 1 && !ausfVon(t.posten[0].a);
-                return '<div class="steil">'+
-                  '<span class="sname">'+basisVon(t.a)+' '+grundVon(t.a)+
-                    ((t.a.eigentum||'iwb')==='extern'? ' <i class="sext">extern</i>':'')+'</span>'+
-                  (einzeln
-                    ? '<span class="smenge">'+summe+
-                      (t.posten[0].b.min? ' / '+t.posten[0].b.min : '')+' '+(t.a.einheit||'')+'</span>'
-                    : '<span class="schips">'+t.posten.map(x => {
-                        const d = dringlichkeit(x.b);
-                        return '<b class="gchip'+(d? (d.stufe==='niedrig'? ' warn':' krit'):'')+'" '+
-                          'title="'+String(x.a.name).replace(/"/g,'&quot;')+
-                          ' – Bestand '+x.b.q+(x.b.min? ', Meldebestand '+x.b.min:'')+'">'+
-                          ausfVon(x.a)+' <em>'+x.b.q+'</em></b>';
-                      }).join('')+'</span>')+
-                  '</div>';
-              }).join('')+
-              '</div>'
-            : '')+
-          '</div>';
-      }
-      h += '</div>';
-    }
-    h += '</div></div>';
-  }
-  h += '</div>';
-
-  if(ohnePlatz.length){
-    h += '<div class="hinweis gelb"><b>'+ohnePlatz.length+' Artikel ohne Schubladenangabe.</b> '+
-      [...new Set(ohnePlatz.map(nr => grundVon(artFind(nr)) || nr))].slice(0,8).join(', ')+
-      (ohnePlatz.length>8? ' und weitere':'')+
-      ' &ndash; in der Listenansicht einen Platz zuweisen.</div>';
-  }
-  h += '<div class="legende" style="margin-top:8px">'+
-    '<span><i style="background:#0F4C81"></i>IWB &ndash; eigene Ware</span>'+
-    '<span><i style="background:#7A5C2E"></i>Extern &ndash; Konsignation</span>'+
-    '<span><i style="background:#FDF6E3;border:1px solid var(--grau-linie)"></i>unter Meldebestand</span>'+
-    '<span><i style="background:#FBEEED;border:1px solid var(--grau-linie)"></i>kritisch oder leer</span>'+
-    '<span><i style="background:#F0F2F4;border:1px solid var(--grau-linie)"></i>frei</span>'+
-    '</div>';
-  el('schubRaster').innerHTML = h;
-}
-
-/* Liegt nur ein Teil in der Schublade, gleich aufmachen.
-   Liegen mehrere darin, erst die Schublade zeigen. */
-function schubladeOeffnen(sc, sp, sch){
-  const platz = platzKonsi(sc, sp, sch);
-  const drin = Object.entries(bestand[standort] || {})
-    .filter(([nr,b]) => b.platz === platz)
-    .map(([nr,b]) => ({nr, b, a: artFind(nr) || {name:nr, einheit:''}}));
-  const teile = [];
-  drin.forEach(x => {
-    const bas = basisVon(x.a);
-    let g = teile.find(t => t.basis === bas);
-    if(!g) teile.push(g = {basis:bas, a:x.a, posten:[]});
-    g.posten.push(x);
-  });
-  teile.forEach(t => t.posten.sort((x,y) => ausfSort(x.a, y.a)));
-  teile.sort((x,y) => String(basisVon(x.a)).localeCompare(
-    String(basisVon(y.a)),'de',{numeric:true}));
-
-  if(!teile.length) return schubladeNeu(sc, sp, sch);
-  if(teile.length === 1 && !istTablet() && !nurLesen())
-    return artBearbeiten(teile[0].posten[0].nr);
-
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()">'+
-    '<div class="dialog" style="max-width:620px">'+
-    '<div class="kopf"><div><b>Schublade '+String(sch).padStart(2,'0')+'</b>'+
-      '<span>&nbsp;Schrank '+sc+' &middot; Spalte '+sp+' &middot; '+teile.length+' Teile</span></div>'+
-      '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf" style="padding:0">'+
-      '<table class="tab"><thead><tr><th>Nummer</th><th>Bezeichnung</th>'+
-        '<th>Ausf&uuml;hrungen</th><th class="num">Bestand</th><th></th></tr></thead><tbody>'+
-      teile.map(t => {
-        const summe = t.posten.reduce((n,x) => n + (x.b.q||0), 0);
-        const eng = t.posten.filter(x => dringlichkeit(x.b));
-        return '<tr><td><b>'+t.basis+'</b></td>'+
-          '<td>'+grundVon(t.a)+
-            ((t.a.eigentum||'iwb')==='extern'
-              ? '<br><span class="eigentumChip extern">'+(t.a.firma||'extern')+'</span>' : '')+'</td>'+
-          '<td>'+t.posten.map(x =>
-              '<span class="eigentumChip '+(dringlichkeit(x.b)? 'extern':'iwb')+'">'+
-              (ausfVon(x.a) || 'ohne Gr.')+': '+x.b.q+'</span>').join(' ')+
-            (eng.length? '<br><span class="sub" style="color:var(--rot)">'+eng.length+
-              ' Ausf&uuml;hrung'+(eng.length>1?'en':'')+' nachbestellen</span>' : '')+'</td>'+
-          '<td class="num"><b>'+summe+'</b> '+(t.a.einheit||'')+'</td>'+
-          '<td style="white-space:nowrap">'+
-            (istTablet()
-              ? t.posten.map(x => '<button class="mini" title="'+(ausfVon(x.a)||'')+' entnehmen" '+
-                  'onclick="abMengeArtikel(\''+x.nr+'\')">&minus; '+(ausfVon(x.a)||'Entnahme')+'</button>').join(' ')
-              : (nurLesen()? '' :
-                 '<button class="mini" onclick="artBearbeiten(\''+t.posten[0].nr+'\')" '+
-                 'title="Teil bearbeiten">&#9998;</button>'))+
-          '</td></tr>';
-      }).join('')+
-      '</tbody></table></div>'+
-    '<div class="fuss">'+
-      '<span class="weiter sub">'+platz+'</span>'+
-      '<button class="btn sek" onclick="schliesse()">Schlie&szlig;en</button>'+
-      ((istTablet()||nurLesen())? '' :
-        '<button class="btn" onclick="schliesse();schubladeNeu('+sc+','+sp+','+sch+')">'+
-        '+ Teil in diese Schublade</button>')+
-    '</div></div></div>';
-}
-
-function schubladeNeu(sc, sp, sch){
-  if(istTablet() || nurLesen()) return;
-  artFormular(null);
-  setTimeout(() => {
-    if(el('aSchrank')){ el('aSchrank').value = sc; el('aSpalte').value = sp; el('aSchub').value = sch; }
-  }, 80);
-}
-
-function artBuchen(nr, delta, zweck){
-  if(nurLesen()) return alert('Dieser Zugang darf nichts buchen.');
-  const b = ortBestand(standort, nr); if(!b) return;
-  const alt = b.q;
-  b.q = Math.max(0, b.q + delta);
-  if(b.q < alt) bewegungSchreiben({d:new Date().toISOString().slice(0,10), nr, n:alt-b.q,
-                                    ort:standort, zweck: zweck||'',
-                                    von: el('benutzer').value.trim()||''});
-  const a = artFind(nr);
-  notiere('Bestand', nr+' '+(a?a.name:''), ortName(standort)+(b.platz? ' / '+b.platz:''),
-          alt, b.q, zweck? 'für: '+zweck : '');
-  bestandSchreiben(standort, nr);
-  meldungPruefen(nr, alt, b.q);
-  artSpeichern();
-}
-function artSetzen(nr, wert){
-  if(nurLesen()) return;
-  const b = ortBestand(standort, nr); if(!b) return;
-  const neu = Math.max(0, Math.round(parseFloat(String(wert).replace(',','.')) || 0));
-  if(neu === b.q) return;
-  const alt = b.q; b.q = neu;
-  if(neu < alt) bewegungSchreiben({d:new Date().toISOString().slice(0,10), nr, n:alt-neu,
-                                   ort:standort, zweck:'', von: el('benutzer').value.trim()||''});
-  const a = artFind(nr);
-  notiere('Bestand', nr+' '+(a?a.name:''), ortName(standort), alt, neu, '');
-  bestandSchreiben(standort, nr);
-  meldungPruefen(nr, alt, neu);
-  artSpeichern();
-}
-function artHierRein(nr){
-  bestand[standort] = bestand[standort] || {};
-  bestand[standort][nr] = {q:0, platz:'', min:0};
-  const a = artFind(nr);
-  notiere('Stammdaten', nr+' '+(a?a.name:''), ortName(standort), null, 0, 'Artikel hier aufgenommen');
-  bestandSchreiben(standort, nr);
-  artSpeichern();
-}
-function artHierWeg(nr){
-  const a = artFind(nr);
-  if(!confirm('"'+(a?a.name:nr)+'" aus '+ortName(standort)+' entfernen?\nDer Artikel bleibt im Stamm erhalten.')) return;
-  const b = ortBestand(standort, nr);
-  delete bestand[standort][nr];
-  notiere('Stammdaten', nr+' '+(a?a.name:''), ortName(standort), b? b.q:null, null, 'hier ausgelagert');
-  bestandSchreiben(standort, nr);
-  artSpeichern();
-}
-
-function artNeu(){ artFormular(null); }
-
-/* Nächster Artikel: Häkchen bleibt gesetzt, Platz rückt eine Schublade weiter */
-function artFormularWeiter(letzterPlatz){
-  artFormular(null);
-  setTimeout(() => {
-    const haken = el('aWeiter'); if(haken) haken.checked = true;
-    const t = platzZerlegen(letzterPlatz);
-    if(t && el('aSchrank')){
-      let {sc, sp, sch} = t;
-      sch++;
-      if(sch > SCHUBLADEN){ sch = 1; sp++; }
-      if(sp > SPALTEN){ sp = 1; sc++; }
-      if(sc <= SCHRAENKE){
-        el('aSchrank').value = sc; el('aSpalte').value = sp; el('aSchub').value = sch;
-      }
-    } else if(letzterPlatz && el('aPlatz')){
-      el('aPlatz').value = letzterPlatz;
-    }
-  }, 60);
-}
-function artBearbeiten(nr){ artFormular(artFind(nr)); }
-
-function artFormular(a){
-  const neu = !a;
-  const basis = neu ? naechsteNummer() : basisVon(a);
-  const grund = neu ? '' : grundVon(a);
-  a = a || {nr:'', name:'', kat:'', einheit:'Stück', preis:0, notiz:'', eigentum:'iwb', firma:''};
-  const kats = [...new Set(artikel.map(x => x.kat).filter(Boolean))].sort();
-  const konsi = istKonsiLager();
-  const extern = (a.eigentum || 'iwb') === 'extern';
-
-  /* Beim Bearbeiten alle Ausfuehrungen dieser Nummer, die hier liegen */
-  const reihen = neu ? [{f:'', groesse:'', q:0, min:0, nr:''}]
-    : varianten(basis)
-        .filter(v => ortBestand(standort, v.nr) || v.nr === a.nr)
-        .map(v => { const b = ortBestand(standort, v.nr) || {q:0, min:0};
-                    return {f: v.f || '', groesse: v.groesse || '',
-                            q: b.q || 0, min: b.min || 0, nr: v.nr}; });
-  if(!reihen.length) reihen.push({f:'', groesse:'', q:0, min:0, nr:''});
-  window.__groessen = reihen;
-  const platz = neu ? '' : ((ortBestand(standort, a.nr) || {}).platz || '');
-
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog">'+
-    '<div class="kopf"><div><b>'+(neu? 'Neuer Artikel' : (grund || ('Artikel '+basis)))+'</b>'+
-      '<span>&nbsp;'+(neu? 'Stammdaten gelten f&uuml;r alle Standorte'
-                         : basis+(reihen.length>1? ' &middot; '+reihen.length+' Ausf&uuml;hrungen':''))+
-      '</span></div><button class="zu" onclick="schliesse()">&times;</button></div>'+
-
-    '<div class="rumpf">'+
-
-      '<div class="formtitel">Stammdaten</div>'+
-      '<p class="formhinweis">Gelten an allen Standorten. '+
-        (neu && eigeneNummer()? 'Die Nummer vom Schild abschreiben &ndash; ohne Gr&ouml;&szlig;e.' : '')+'</p>'+
-      '<div class="formgitter">'+
-        '<label>'+(eigeneNummer()? 'Teilenummer' : 'Artikelnummer')+
-          '<input type="text" id="aNr" value="'+basis+'" '+(neu?'':'readonly')+
-          (neu && eigeneNummer()? ' placeholder="z. B. 1004"':'')+'></label>'+
-        '<label>Kategorie<input type="text" id="aKat" list="katListe" value="'+(a.kat||'')+
-          '" placeholder="z. B. Dichtungen"><datalist id="katListe">'+
-          kats.map(k => '<option value="'+String(k).replace(/"/g,'&quot;')+'">').join('')+
-          '</datalist></label>'+
-        '<label class="breit">Bezeichnung<input type="text" id="aName" value="'+
-          String(grund).replace(/"/g,'&quot;')+'" placeholder="z. B. Mitnehmerf&uuml;hrung"></label>'+
-        '<label>Einheit<input type="text" id="aEinheit" value="'+(a.einheit||'')+
-          '" placeholder="St&uuml;ck, Pack, Karton"></label>'+
-        (darfPreise()
-          ? '<label>Preis je Einheit (&euro;)<input type="number" step="0.01" id="aPreis" value="'+
-            (a.preis||0)+'"></label>' : '')+
-        (konsi
-          ? '<label>Eigentum<select id="aEigentum" onchange="artFormularBereich()">'+
-            '<option value="iwb"'+(!extern? ' selected':'')+'>IWB &ndash; eigene Ware</option>'+
-            '<option value="extern"'+(extern? ' selected':'')+'>Extern &ndash; Konsignation</option>'+
-            '</select></label>'+
-            '<label id="aFirmaFeld"'+(extern? '' : ' style="display:none"')+'>Firma'+
-            '<input type="text" id="aFirma" list="firmenListe" value="'+(a.firma||'')+
-            '" placeholder="Name des Lieferanten"><datalist id="firmenListe">'+
-            firmen.map(f => '<option value="'+String(f.name).replace(/"/g,'&quot;')+'">').join('')+
-            '</datalist></label>' : '')+
-        '<label class="breit">Notiz<textarea id="aNotiz" rows="2" '+
-          'placeholder="z. B. Einbauort, Hersteller, Besonderheiten">'+(a.notiz||'')+'</textarea></label>'+
-      '</div>'+
-
-      '<div class="formtitel">'+(konsi? 'Schublade' : 'Lagerplatz')+'</div>'+
-      '<div class="formgitter"><label class="breit" id="aPlatzFeld">'+
-        (konsi? 'Schrank, Spalte und Schublade' : 'Platz')+platzEingabe(platz)+'</label></div>'+
-
-      '<div class="formtitel">Ausf&uuml;hrungen und Best&auml;nde</div>'+
-      '<p class="formhinweis">Eine Zeile je Ausf&uuml;hrung. Jede bekommt ihren eigenen '+
-        'Bestand und Meldebestand &ndash; nur so sieht man, welche Ausf&uuml;hrung leer ist. '+
-        'Das Feld <b>F</b> ist die Kennung vom Schild und geh&ouml;rt mit in die Nummer.<br>'+
-        'Gilt nur f&uuml;r <b>'+ortName(standort)+'</b>.</p>'+
-      '<table class="groesstab"><thead><tr>'+
-        '<th style="width:74px">F</th>'+
-        '<th>Gr&ouml;&szlig;e</th>'+
-        '<th style="width:96px">Bestand</th>'+
-        '<th style="width:116px">Meldebestand</th>'+
-        '<th style="width:34px"></th></tr></thead>'+
-        '<tbody id="groessenBody"></tbody></table>'+
-      '<datalist id="groessenListe">'+groessenVorschlaege()+'</datalist>'+
-      '<datalist id="kennungListe">'+kennungVorschlaege()+'</datalist>'+
-      '<div style="margin-top:11px;display:flex;gap:8px;flex-wrap:wrap">'+
-        '<button class="btn sek" onclick="groesseZeile()">+ Gr&ouml;&szlig;e</button>'+
-        '<button class="btn sek" onclick="groessenSchnell()">Mehrere vom Schild &uuml;bernehmen &hellip;</button>'+
-      '</div>'+
-
-      (darfPreise() && (a.preise||[]).length > 1 ? preisVerlauf(a) : '')+
-    '</div>'+
-
-    '<div class="fuss">'+
-      (neu
-        ? '<label class="weiter"><input type="checkbox" id="aWeiter"> danach gleich den n&auml;chsten anlegen</label>'
-        : '<span class="weiter"></span>')+
-      '<button class="btn sek" onclick="schliesse()">Abbrechen</button>'+
-      (neu? '' : '<button class="btn rot" onclick="artBasisLoeschen(\''+basis+'\')">'+
-                 'Aus dem Stamm l&ouml;schen</button>')+
-      '<button class="btn" onclick="artSpeichernForm(\''+basis+'\','+(neu?'true':'false')+')">Speichern</button>'+
-    '</div></div></div>';
-
-  groessenZeichnen();
-  setTimeout(() => {
-    const f = el(neu && eigeneNummer() ? 'aNr' : 'aName');
-    if(f){ f.focus(); if(f.select) f.select(); }
-  }, 60);
-}
-
-/* --- Tabelle der Ausfuehrungen --- */
-function groessenZeichnen(){
-  const basis = el('aNr') ? el('aNr').value.trim() : '';
-  const r = window.__groessen || [];
-  el('groessenBody').innerHTML = r.map((z, ix) => {
-    const nummer = basis ? artNummer(basis, z.f, z.groesse) : '';
-    return '<tr>'+
-      '<td><input type="text" list="kennungListe" value="'+String(z.f||'').replace(/"/g,'&quot;')+
-        '" data-g="f" data-ix="'+ix+'" placeholder="F" oninput="groessenNummern()"></td>'+
-      '<td><input type="text" list="groessenListe" value="'+String(z.groesse||'').replace(/"/g,'&quot;')+
-        '" data-g="groesse" data-ix="'+ix+'" placeholder="z. B. 0.6 oder 2x1,2" '+
-        'oninput="groessenNummern()">'+
-        '<span class="gnr" id="gnr'+ix+'">'+(nummer? 'Nummer: '+nummer : '')+'</span></td>'+
-      '<td><input type="number" min="0" value="'+(z.q||0)+'" data-g="q" data-ix="'+ix+'"></td>'+
-      '<td><input type="number" min="0" value="'+(z.min||0)+'" data-g="min" data-ix="'+ix+'"></td>'+
-      '<td>'+(r.length>1? '<button class="mini" title="Zeile entfernen" '+
-              'onclick="groesseWeg('+ix+')">&times;</button>':'')+'</td></tr>';
-  }).join('');
-}
-/* Nummern unter den Feldern mitlaufen lassen */
-function groessenNummern(){
-  groessenLesen();
-  const basis = el('aNr') ? el('aNr').value.trim() : '';
-  (window.__groessen || []).forEach((z, ix) => {
-    const feld = el('gnr'+ix);
-    if(feld) feld.textContent = basis ? 'Nummer: '+artNummer(basis, z.f, z.groesse) : '';
-  });
-}
-function groessenLesen(){
-  document.querySelectorAll('#groessenBody input').forEach(inp => {
-    const z = (window.__groessen || [])[parseInt(inp.dataset.ix,10)];
-    if(!z) return;
-    if(inp.dataset.g === 'groesse' || inp.dataset.g === 'f') z[inp.dataset.g] = inp.value.trim();
-    else z[inp.dataset.g] = Math.max(0, parseInt(inp.value,10) || 0);
-  });
-}
-function groesseZeile(){
-  groessenLesen();
-  const letzte = window.__groessen[window.__groessen.length-1] || {};
-  window.__groessen.push({f: letzte.f || '', groesse:'', q:0, min:0, nr:''});
-  groessenZeichnen();
-  setTimeout(() => {
-    const f = document.querySelectorAll('#groessenBody input[data-g="groesse"]');
-    if(f.length) f[f.length-1].focus();
-  }, 40);
-}
-function groesseWeg(ix){
-  groessenLesen();
-  const z = window.__groessen[ix];
-  if(z && z.nr && (z.q > 0) &&
-     !confirm('„'+((z.f? z.f+' ':'')+z.groesse).trim()+'“ hat noch '+z.q+' auf Bestand.\n\n'+
-              'Beim Speichern wird diese Ausführung aus '+ortName(standort)+' entfernt.')) return;
-  window.__groessen.splice(ix,1);
-  if(!window.__groessen.length) window.__groessen.push({f:'', groesse:'', q:0, min:0, nr:''});
-  groessenZeichnen();
-}
-/* Alle Groessen in einem Rutsch, so wie sie auf dem Schild stehen */
-function groessenSchnell(){
-  groessenLesen();
-  const text = prompt('Größen vom Schild eintragen, mit Leerzeichen getrennt.\n\n'+
-    'Beispiel Schild 1004:\n0.3 0.6 1.2 2.4 2x0,3 2x1,2 2x2,4\n\n'+
-    'Ein Komma in der Zahl selbst (2x1,2) bleibt erhalten.', '');
-  if(text === null) return;
-  /* getrennt wird an Leerzeichen und Semikolon; ein Komma am Rand ist
-     Trennzeichen, ein Komma in der Zahl (2x1,2) gehoert dazu */
-  const liste = text.split(/[\s;]+/)
-    .map(t => t.replace(/^[,;]+|[,;]+$/g,'').trim()).filter(Boolean);
-  if(!liste.length) return;
-  const kenn = (prompt('Kennung für diese Größen, so wie sie auf dem Schild steht.\n\n'+
-    'Beim Schild 1004 ist das F. Steht keine da: Feld leer lassen.', 'F') || '').trim();
-  const da = window.__groessen.filter(z => z.groesse || z.f)
-    .map(z => (z.f||'')+'|'+(z.groesse||''));
-  /* leere Platzhalterzeilen fallen weg */
-  window.__groessen.filter(z => !z.groesse && !z.f && !z.q && !z.min && !z.nr)
-    .forEach(z => window.__groessen.splice(window.__groessen.indexOf(z), 1));
-  liste.forEach(g => { const k = kenn+'|'+g;
-    if(!da.includes(k)){ da.push(k);
-      window.__groessen.push({f:kenn, groesse:g, q:0, min:0, nr:''}); } });
-  if(!window.__groessen.length) window.__groessen.push({f:'', groesse:'', q:0, min:0, nr:''});
-  window.__groessen.sort(ausfSort);
-  groessenZeichnen();
-}
-
-/* Preisverlauf im Artikelfenster */
-function preisVerlauf(a){
-  const h = (a.preise || []).slice().sort((x,y) => String(y.ab).localeCompare(String(x.ab)));
-  if(h.length < 2) return '';
-  return '<div class="formtitel">Preisverlauf</div>'+
-    '<p class="formhinweis">Verbrauchswerte werden immer mit dem Preis gerechnet, '+
-      'der am Tag der Entnahme gegolten hat.</p>'+
-    '<table class="preistab"><thead><tr><th>ab</th><th class="num">Preis</th>'+
-    '<th class="num">Änderung</th><th>eingetragen von</th></tr></thead><tbody>'+
-    h.map(p => {
-      const vor = p.vorher || 0;
-      const diff = vor ? (p.preis - vor) / vor * 100 : 0;
-      return '<tr><td>'+dmy(p.ab)+'</td><td class="num">'+de(p.preis,2)+' &euro;</td>'+
-        '<td class="num">'+(vor
-          ? '<span class="'+(diff>=0? 'rauf':'runter')+'">'+(diff>=0?'+':'')+de(diff,1)+' %</span>'
-          : '<span class="sub">neu</span>')+'</td>'+
-        '<td class="sub">'+(p.von||'')+'</td></tr>';
-    }).join('')+'</tbody></table>';
-}
-
-/* Platzfeld: im Konsi als Schrank/Reihe/Schublade, sonst frei */
-function platzEingabe(platz){
-  if(!istKonsiLager())
-    return '<input type="text" id="aPlatz" value="'+(platz||'')+'" placeholder="Regal 3 / B">';
-  const t = platzZerlegen(platz) || {sc:1, sp:1, sch:1};
-  const opt = (n, gewaehlt, pre) => Array.from({length:n}, (_,i) => i+1)
-    .map(v => '<option value="'+v+'"'+(v===gewaehlt? ' selected':'')+'>'+(pre||'')+v+'</option>').join('');
-  return '<div style="display:flex;gap:5px">'+
-    '<select id="aSchrank" style="flex:1">'+opt(SCHRAENKE, t.sc, 'Schrank ')+'</select>'+
-    '<select id="aSpalte" style="flex:1">'+opt(SPALTEN, t.sp, 'Spalte ')+'</select>'+
-    '<select id="aSchub" style="flex:1">'+opt(SCHUBLADEN, t.sch, 'Schubl. ')+'</select>'+
-    '</div>';
-}
-
-/* Formular umbauen, wenn Bereich oder Eigentum wechselt */
-function artFormularBereich(){
-  const extern = el('aEigentum') && el('aEigentum').value === 'extern';
-  const feldFirma = el('aFirmaFeld');
-  if(feldFirma) feldFirma.style.display = extern ? '' : 'none';
-}
-
-function platzAuslesen(){
-  if(istKonsiLager() && el('aSchrank') && el('aSpalte') && el('aSchub'))
-    return platzKonsi(el('aSchrank').value, el('aSpalte').value, el('aSchub').value);
-  return el('aPlatz') ? el('aPlatz').value.trim() : '';
-}
-
-function artSpeichernForm(basis, neu){
-  groessenLesen();
-  const grund = el('aName').value.trim();
-  if(!grund) return alert('Bitte eine Bezeichnung eingeben.');
-  const basisNr = el('aNr').value.trim() || basis;
-  if(!basisNr) return alert('Bitte eine Teilenummer eintragen.');
-
-  /* Zeilen ohne alles fallen weg; eine einzelne leere Zeile heisst "keine Groessen" */
-  let zeilen = window.__groessen.filter(z => z.groesse || z.f || z.q || z.min || z.nr);
-  if(!zeilen.length) zeilen = [{f:'', groesse:'', q:0, min:0, nr:''}];
-  const namen = zeilen.map(z => (z.f||'')+' '+(z.groesse||''));
-  const doppelt = namen.find((g,i) => namen.indexOf(g) !== i);
-  if(doppelt !== undefined)
-    return alert('Die Ausführung „'+doppelt.trim()+'“ steht zweimal in der Tabelle.\n\n'+
-                 'F und Größe zusammen müssen je Zeile verschieden sein.');
-
-  const eigentum = el('aEigentum') ? el('aEigentum').value : 'iwb';
-  const firmaName = el('aFirma') ? el('aFirma').value.trim() : '';
-  if(istKonsiLager() && eigentum === 'extern' && !firmaName)
-    return alert('Bei externer Konsignationsware muss die Firma eingetragen werden.');
-
-  const nummern = zeilen.map(z => artNummer(basisNr, z.f, z.groesse));
-  if(neu){
-    const schon = nummern.find(n => artFind(n));
-    if(schon) return alert('Die Nummer '+schon+' gibt es schon: „'+artFind(schon).name+'“.\n\n'+
-      'Wenn es dasselbe Teil ist, dieses Fenster schließen und den Artikel über '+
-      '„alle Artikel zeigen“ in diesen Standort aufnehmen.');
-  }
-
-  const platz  = platzAuslesen();
-  const heute  = new Date().toISOString().slice(0,10);
-  const wer    = el('benutzer').value.trim() || (angemeldet? angemeldet.email : '');
-  const preisN = darfPreise()
-    ? (parseFloat(String(el('aPreis').value).replace(',','.')) || 0)
-    : null;
-
-  bestand[standort] = bestand[standort] || {};
-
-  zeilen.forEach((z, ix) => {
-    const nummer = nummern[ix];
-    const alt = artFind(nummer);
-    const daten = {
-      nr: nummer, basisNr: basisNr, f: z.f || '', groesse: z.groesse || '',
-      grundname: grund,
-      name: bezVon(grund, z.f, z.groesse),
-      kat: el('aKat').value.trim(), einheit: el('aEinheit').value.trim(),
-      eigentum: istKonsiLager() ? eigentum : 'iwb',
-      firma: (istKonsiLager() && eigentum === 'extern') ? firmaName : '',
-      preis: preisN !== null ? preisN : ((alt||{}).preis || 0),
-      notiz: el('aNotiz').value.trim()
-    };
-    if(alt){
-      const vorherPreis = alt.preis || 0;
-      if(preisN !== null && Math.abs(vorherPreis - daten.preis) > 0.0001){
-        alt.preise = alt.preise || [];
-        alt.preise.push({ab: heute, preis: daten.preis, vorher: vorherPreis, von: wer});
-        notiere('Preis', nummer+' '+daten.name, '', vorherPreis, daten.preis,
-                'Preis geändert von '+de(vorherPreis,2)+' € auf '+de(daten.preis,2)+' €');
-      }
-      daten.preise = alt.preise || [];
-      Object.assign(alt, daten);
-    } else {
-      daten.preise = daten.preis
-        ? [{ab: heute, preis: daten.preis, vorher: 0, von: wer}] : [];
-      artikel.push(daten);
-    }
-    const vorher = bestand[standort][nummer];
-    bestand[standort][nummer] = {q: Math.max(0, z.q||0), platz, min: Math.max(0, z.min||0)};
-    notiere('Stammdaten', nummer+' '+daten.name, ortName(standort)+(platz? ' / '+platz:''),
-            vorher? vorher.q : null, bestand[standort][nummer].q,
-            (vorher? 'Artikel bearbeitet' : 'Artikel angelegt')+
-            (ausfVon(daten)? ' (Ausführung '+ausfVon(daten)+')' : ''));
-    stammSchreiben(nummer);
-    bestandSchreiben(standort, nummer);
-  });
-
-  /* Ausfuehrungen, die aus der Tabelle entfernt wurden, hier auslagern */
-  if(!neu){
-    varianten(basis).filter(v => ortBestand(standort, v.nr) && !nummern.includes(v.nr))
-      .forEach(v => {
-        const b = ortBestand(standort, v.nr);
-        delete bestand[standort][v.nr];
-        notiere('Stammdaten', v.nr+' '+v.name, ortName(standort), b.q, null,
-                'Ausführung hier ausgelagert');
-        bestandSchreiben(standort, v.nr);
-      });
-  }
-
-  if(istKonsiLager() && eigentum === 'extern' && firmaName && !firmaFind(firmaName)){
-    firmen.push({name: firmaName, mail:'', ansprech:''});
-    firmenSpeichern();
-  }
-
-  const weiter = neu && el('aWeiter') && el('aWeiter').checked;
-  schliesse(); artSpeichern();
-  cloudStatus('„'+grund+'“ gespeichert'+(zeilen.length>1? ' · '+zeilen.length+' Ausführungen':''),
-              '#5A9E2F');
-  if(weiter) setTimeout(() => artFormularWeiter(platz), 140);
-}
-
-/* Ganzes Teil samt aller Ausfuehrungen aus dem Stamm nehmen */
-function artBasisLoeschen(basis){
-  const v = varianten(basis);
-  if(!v.length) return;
-  const orte = [...new Set(v.flatMap(x => Object.keys(bestand).filter(o => (bestand[o]||{})[x.nr])))];
-  if(!confirm('"'+grundVon(v[0])+'" ('+basis+') komplett aus dem Artikelstamm löschen?'+
-     (v.length>1? '\n\nDas betrifft alle '+v.length+' Ausführungen: '+
-                  v.map(x => ausfVon(x)||'ohne Größe').join(', ') : '')+
-     (orte.length? '\n\nGeführt in: '+orte.map(ortName).join(', ') : ''))) return;
-  v.forEach(x => {
-    const wo = Object.keys(bestand).filter(o => (bestand[o]||{})[x.nr]);
-    artikel = artikel.filter(y => y.nr !== x.nr);
-    wo.forEach(o => delete bestand[o][x.nr]);
-    notiere('Stammdaten', x.nr+' '+x.name, '', null, null, 'aus dem Stamm gelöscht');
-    stammLoeschen(x.nr, wo);
-  });
-  schliesse(); artSpeichern();
-}
-
-function artLoeschen(nr){
-  const a = artFind(nr);
-  const orte = Object.keys(bestand).filter(o => (bestand[o]||{})[nr]);
-  if(!confirm('"'+(a?a.name:nr)+'" komplett aus dem Artikelstamm löschen?'+
-     (orte.length? '\n\nEr ist noch in '+orte.map(ortName).join(', ')+' geführt.':''))) return;
-  artikel = artikel.filter(x => x.nr !== nr);
-  orte.forEach(o => delete bestand[o][nr]);
-  notiere('Stammdaten', nr+' '+(a?a.name:''), '', null, null, 'aus dem Stamm gelöscht');
-  stammLoeschen(nr, orte);
-  schliesse(); artSpeichern();
-}
-
-/* ---------------------------------------------------------------
-   Eintippliste: eine Zeile je Ausfuehrung. In Excel ausfuellen,
-   danach hier wieder einlesen. Zeilen, die mit # beginnen, sind
-   Beispiele und werden beim Einlesen uebersprungen.
-   --------------------------------------------------------------- */
-const IMPORT_SPALTEN = konsi =>
-  ['Teilenummer','F','Bezeichnung','Groesse','Bestand','Meldebestand']
-  .concat(konsi ? ['Schrank','Spalte','Schublade'] : ['Platz'])
-  .concat(['Einheit','Kategorie'])
-  .concat(darfPreise() ? ['Preis'] : [])
-  .concat(konsi ? ['Eigentum','Firma'] : [])
-  .concat(['Notiz']);
-
-function csvFeld(t){
-  const w = String(t == null ? '' : t);
-  return /[;"\n]/.test(w) ? '"'+w.replace(/"/g,'""')+'"' : w;
-}
-
-function artVorlageCsv(){
-  const konsi = istKonsiLager();
-  const spalten = IMPORT_SPALTEN(konsi);
-  const zeilen = [spalten.join(';')];
-
-  /* was hier schon liegt, kommt mit rein - so wird die Liste auch zum Korrigieren benutzt */
-  const eigene = bestand[standort] || {};
-  artikel.filter(a => eigene[a.nr]).sort((a,b) =>
-      String(basisVon(a)).localeCompare(String(basisVon(b)),'de',{numeric:true}) || ausfSort(a,b))
-    .forEach(a => {
-      const b = eigene[a.nr], t = platzZerlegen(b.platz);
-      const w = {Teilenummer:basisVon(a), F:a.f||'', Bezeichnung:grundVon(a), Groesse:a.groesse||'',
-        Bestand:b.q, Meldebestand:b.min||0,
-        Schrank:t? t.sc:'', Spalte:t? t.sp:'', Schublade:t? t.sch:'', Platz:b.platz||'',
-        Einheit:a.einheit||'', Kategorie:a.kat||'', Preis:a.preis? de(a.preis,2):'',
-        Eigentum:(a.eigentum||'iwb')==='extern'? 'extern':'IWB', Firma:a.firma||'', Notiz:a.notiz||''};
-      zeilen.push(spalten.map(k => csvFeld(w[k])).join(';'));
-    });
-
-  /* Beispielzeilen nach dem Schild aus der Schublade */
-  const bsp = konsi
-    ? [['#1004','F','Mitnehmerführung','0.3','6','2','1','1','4','','Stück','Pack und Düse','12,50','extern','Muster GmbH','Schild Schublade 04'],
-       ['#1004','F','Mitnehmerführung','0.6','4','2','1','1','4','','Stück','Pack und Düse','12,50','extern','Muster GmbH',''],
-       ['#1004','','Mitnehmerführung','2x1,2','8','4','1','1','4','','Stück','Pack und Düse','12,50','extern','Muster GmbH','']]
-    : [['#2001','','Handtuchrolle','','24','6','','','','Regal 2','Pack','Hygiene','8,90','','','Verbrauch ca. 4 je Woche']];
-  bsp.forEach(r => {
-    const voll = {Teilenummer:r[0], F:r[1], Bezeichnung:r[2], Groesse:r[3], Bestand:r[4],
-      Meldebestand:r[5], Schrank:r[6], Spalte:r[7], Schublade:r[8], Platz:r[9], Einheit:r[10],
-      Kategorie:r[11], Preis:r[12], Eigentum:r[13], Firma:r[14], Notiz:r[15]};
-    zeilen.push(spalten.map(k => csvFeld(voll[k] || '')).join(';'));
-  });
-
-  lade(new Blob(['﻿'+zeilen.join('\n')], {type:'text/csv;charset=utf-8'}),
-       'Eintippliste_'+(ORTE[standort]||{kurz:'Lager'}).kurz+'_'+datum()+'.csv');
-  el('artImportErgebnis').innerHTML =
-    '<div class="hinweis"><b>Eintippliste heruntergeladen.</b> Eine Zeile je Ausführung &ndash; '+
-    'dieselbe Teilenummer darf beliebig oft vorkommen, einmal je Größe. '+
-    'Die Zeilen mit <code>#</code> vorn sind Beispiele und werden beim Einlesen übersprungen; '+
-    'zum Übernehmen einfach das <code>#</code> entfernen. '+
-    'Was hier schon im Lager liegt, steht mit in der Datei &ndash; so lässt sich damit auch korrigieren.</div>';
-}
-
-let artImport = null;
-
-function artCsvDateiWahl(feld){
-  const datei = feld.files[0]; if(!datei) return;
-  const leser = new FileReader();
-  leser.onload = ev => artCsvAuswerten(ev.target.result, datei.name);
-  leser.readAsText(datei, 'utf-8');
-  feld.value = '';
-}
-
-function artCsvAuswerten(text, dateiname){
-  if(nurLesen()) return alert('Dieser Zugang darf nichts einlesen.');
-  const roh = text.replace(/^﻿/,'').split(/\r?\n/).filter(z => z.trim());
-  if(!roh.length){ el('artImportErgebnis').innerHTML =
-    '<div class="hinweis rot">Die Datei ist leer.</div>'; return; }
-
-  let trenner = ';', beste = 0;
-  [';','\t',','].forEach(t => { const n = roh[0].split(t).length; if(n > beste){ beste = n; trenner = t; } });
-  const kopfRoh = csvZerlege(roh[0], trenner);
-  const kopf = kopfRoh.map(x => x.toLowerCase().replace(/[^a-z0-9äöüß]/g,''));
-  const sp = (...namen) => kopf.findIndex(x => namen.some(n => x === n || x.startsWith(n)));
-
-  const iNr   = sp('teilenummer','artikelnummer','nummer','nr');
-  const iF    = kopf.findIndex(x => x === 'f' || x.startsWith('kennung') || x.startsWith('bauform'));
-  const iBez  = sp('bezeichnung','artikel','name','benennung');
-  const iGr   = sp('groesse','größe','ausfuehrung','ausführung','mass','maß');
-  const iBest = kopf.findIndex(x => x.startsWith('bestand') || x === 'menge' || x.startsWith('anzahl'));
-  const iMin  = kopf.findIndex(x => x.startsWith('melde') || x.startsWith('mindest') || x === 'min');
-  const iSc   = sp('schrank'); const iSp = sp('spalte'); const iSch = sp('schublade','schub');
-  const iPl   = sp('platz','lagerplatz','regal');
-  const iEh   = sp('einheit'); const iKat = sp('kategorie','gruppe');
-  const iPr   = sp('preis'); const iEig = sp('eigentum'); const iFi = sp('firma','lieferant');
-  const iNo   = sp('notiz','bemerk','hinweis');
-
-  if(iNr < 0 || iBez < 0){
-    el('artImportErgebnis').innerHTML =
-      '<div class="hinweis rot"><b>Die Spalten Teilenummer und Bezeichnung müssen vorhanden sein.</b><br>'+
-      'Gefunden wurden: <code>'+kopfRoh.join(' | ')+'</code><br>'+
-      'Am einfachsten oben die Eintippliste herunterladen und deren Kopfzeile stehen lassen.</div>';
-    return;
-  }
-
-  const zahl  = t => Math.max(0, parseInt(String(t||'').replace(/[^0-9-]/g,''),10) || 0);
-  const komma = t => parseFloat(String(t||'').replace(/\s/g,'').replace(',','.')) || 0;
-  const hol = (r, i) => i >= 0 ? String(r[i] || '').trim() : '';
-
-  const zeilen = [], fehler = [];
-  const gesehen = {};
-  for(let z = 1; z < roh.length; z++){
-    const r = csvZerlege(roh[z], trenner);
-    const basis = hol(r, iNr);
-    if(!basis || basis.startsWith('#')) continue;            // Beispiel- oder Leerzeile
-    const bez = hol(r, iBez);
-    if(!bez){ fehler.push('Zeile '+(z+1)+': keine Bezeichnung zu '+basis); continue; }
-    const f = hol(r, iF), gr = hol(r, iGr);
-    /* Excel macht aus 0.3 gern ein Datum - das faellt hier auf, bevor es im Lager steht */
-    if(/^\d{1,2}\.\d{1,2}\.\d{2,4}$/.test(gr) || /^\d{4}-\d{2}-\d{2}$/.test(gr)){
-      fehler.push('Zeile '+(z+1)+': „'+gr+'“ ist ein Datum, keine Größe. '+
-        'Excel hat die Zelle umgewandelt – Spalte Groesse als Text formatieren und neu eintragen.');
-      continue;
-    }
-    const nummer = artNummer(basis, f, gr);
-    if(gesehen[nummer]){ fehler.push('Zeile '+(z+1)+': '+nummer+' kommt doppelt vor'); continue; }
-    gesehen[nummer] = true;
-
-    let platz = hol(r, iPl);
-    const sc = zahl(hol(r, iSc)), spa = zahl(hol(r, iSp)), sch = zahl(hol(r, iSch));
-    if(sc && spa && sch){
-      if(sc > SCHRAENKE || spa > SPALTEN || sch > SCHUBLADEN){
-        fehler.push('Zeile '+(z+1)+': Schublade '+sc+' / '+spa+' / '+sch+' gibt es nicht'+
-          ' (möglich sind Schrank 1-'+SCHRAENKE+', Spalte 1-'+SPALTEN+', Schublade 1-'+SCHUBLADEN+')');
-        continue;
-      }
-      platz = platzKonsi(sc, spa, sch);
-    }
-    const eig = hol(r, iEig).toLowerCase();
-    const eigentum = eig.startsWith('ext') ? 'extern'
-      : (eig ? 'iwb' : ((artFind(nummer)||{}).eigentum || 'iwb'));
-    const firma = hol(r, iFi) || ((artFind(nummer)||{}).firma || '');
-    if(istKonsiLager() && eigentum === 'extern' && !firma){
-      fehler.push('Zeile '+(z+1)+': '+nummer+' ist externe Ware, es fehlt die Firma');
-      continue;
-    }
-    const alt = artFind(nummer);
-    const altB = ortBestand(standort, nummer);
-    zeilen.push({nummer, basis, f, gr, bez, nr:nummer,
-      q: iBest >= 0 ? zahl(hol(r, iBest)) : (altB ? altB.q : 0),
-      min: iMin >= 0 ? zahl(hol(r, iMin)) : (altB ? altB.min : 0),
-      platz, einheit: hol(r, iEh) || (alt? alt.einheit : 'Stück'),
-      kat: hol(r, iKat) || (alt? alt.kat : ''),
-      preis: iPr >= 0 && hol(r, iPr) ? komma(hol(r, iPr)) : (alt? (alt.preis||0) : 0),
-      eigentum, firma,
-      notiz: hol(r, iNo) || (alt? (alt.notiz||'') : ''),
-      neu: !altB, imStamm: !!alt});
-  }
-
-  artImport = {zeilen, fehler, dateiname};
-  artImportZeigen();
-}
-
-function artImportZeigen(){
-  const d = artImport;
-  if(!d) return;
-  const neue = d.zeilen.filter(x => x.neu).length;
-  const aend = d.zeilen.length - neue;
-  const teile = new Set(d.zeilen.map(x => x.basis)).size;
-  const ohnePlatz = d.zeilen.filter(x => !x.platz).length;
-
-  el('artImportErgebnis').innerHTML =
-    '<div class="karte" style="border-left:4px solid var(--blau)">'+
-    '<h2 style="margin:0 0 4px">Eingelesen: '+(d.dateiname||'')+'</h2>'+
-    '<p class="sub" style="margin:0 0 12px">'+d.zeilen.length+' Ausführungen aus '+teile+
-      ' Teilenummern &middot; '+neue+' neu, '+aend+' schon vorhanden'+
-      (ohnePlatz? ' &middot; '+ohnePlatz+' ohne Platzangabe' : '')+'</p>'+
-    (d.fehler.length
-      ? '<div class="hinweis rot"><b>'+d.fehler.length+' Zeile'+(d.fehler.length>1?'n':'')+
-        ' hat ein Problem und wird nicht übernommen:</b><br>'+
-        d.fehler.slice(0,12).join('<br>')+
-        (d.fehler.length>12? '<br>und '+(d.fehler.length-12)+' weitere' : '')+'</div>'
-      : '')+
-    '<div style="overflow:auto;max-height:44vh;margin-top:10px">'+
-    '<table class="liste"><thead><tr><th>Nummer</th><th>Bezeichnung</th><th>F</th><th>Größe</th>'+
-      '<th style="text-align:right">Bestand</th><th style="text-align:right">Melde</th>'+
-      '<th>Platz</th><th>Eigentum</th><th></th></tr></thead><tbody>'+
-    d.zeilen.slice(0,300).map(x =>
-      '<tr><td><b>'+x.basis+'</b><span class="gnr">'+x.nummer+'</span></td>'+
-      '<td>'+x.bez+'</td><td>'+(x.f||'')+'</td><td>'+(x.gr||'')+'</td>'+
-      '<td class="num">'+x.q+'</td><td class="num">'+(x.min||'')+'</td>'+
-      '<td>'+(x.platz || '<span class="sub">–</span>')+'</td>'+
-      '<td>'+(x.eigentum==='extern'
-        ? '<span class="eigentumChip extern">'+(x.firma||'extern')+'</span>'
-        : '<span class="eigentumChip iwb">IWB</span>')+'</td>'+
-      '<td>'+(x.neu? '<span class="pill neu">neu</span>' : '<span class="pill ok">ändert</span>')+
-      '</td></tr>').join('')+
-    '</tbody></table></div>'+
-    (d.zeilen.length > 300 ? '<p class="sub">Angezeigt werden die ersten 300 Zeilen, '+
-      'übernommen werden alle '+d.zeilen.length+'.</p>' : '')+
-    '<div class="werkzeuge" style="margin-top:12px">'+
-      '<button class="btn gruen" onclick="artImportUebernehmen()">'+
-        d.zeilen.length+' Zeilen in '+ortName(standort)+' übernehmen</button>'+
-      '<button class="btn sek" onclick="artImportVerwerfen()">Verwerfen</button>'+
-    '</div></div>';
-}
-
-function artImportVerwerfen(){ artImport = null; el('artImportErgebnis').innerHTML = ''; }
-
-function artImportUebernehmen(){
-  const d = artImport;
-  if(!d || !d.zeilen.length) return;
-  if(nurLesen()) return alert('Dieser Zugang darf nichts einlesen.');
-  if(!confirm(d.zeilen.length+' Zeilen in '+ortName(standort)+' übernehmen?\n\n'+
-     'Vorhandene Ausführungen werden auf die Werte aus der Datei gesetzt.')) return;
-
-  const heute = new Date().toISOString().slice(0,10);
-  const wer = el('benutzer').value.trim() || (angemeldet? angemeldet.email : '');
-  bestand[standort] = bestand[standort] || {};
-  let neu = 0, geaendert = 0;
-
-  d.zeilen.forEach(x => {
-    const alt = artFind(x.nummer);
-    const daten = {nr:x.nummer, basisNr:x.basis, f:x.f, groesse:x.gr,
-      grundname:x.bez, name:bezVon(x.bez, x.f, x.gr),
-      kat:x.kat, einheit:x.einheit,
-      eigentum: istKonsiLager()? x.eigentum : 'iwb',
-      firma: (istKonsiLager() && x.eigentum==='extern')? x.firma : '',
-      preis:x.preis, notiz:x.notiz};
-    if(alt){
-      const vorherPreis = alt.preis || 0;
-      if(darfPreise() && Math.abs(vorherPreis - daten.preis) > 0.0001){
-        alt.preise = alt.preise || [];
-        alt.preise.push({ab:heute, preis:daten.preis, vorher:vorherPreis, von:wer});
-        notiere('Preis', x.nummer+' '+daten.name, '', vorherPreis, daten.preis,
-                'Preis über Liste geändert');
-      }
-      daten.preise = alt.preise || [];
-      Object.assign(alt, daten);
-    } else {
-      daten.preise = daten.preis? [{ab:heute, preis:daten.preis, vorher:0, von:wer}] : [];
-      artikel.push(daten);
-    }
-    const vorher = bestand[standort][x.nummer];
-    bestand[standort][x.nummer] = {q:x.q, platz:x.platz || (vorher? vorher.platz : ''), min:x.min};
-    if(vorher) geaendert++; else neu++;
-    notiere('Stammdaten', x.nummer+' '+daten.name,
-            ortName(standort)+(x.platz? ' / '+x.platz : ''),
-            vorher? vorher.q : null, x.q,
-            'über Eintippliste '+(vorher? 'aktualisiert' : 'angelegt'));
-    stammSchreiben(x.nummer);
-    bestandSchreiben(standort, x.nummer);
-  });
-
-  if(istKonsiLager()){
-    [...new Set(d.zeilen.filter(x => x.eigentum==='extern' && x.firma).map(x => x.firma))]
-      .filter(n => !firmaFind(n))
-      .forEach(n => firmen.push({name:n, mail:'', ansprech:''}));
-    firmenSpeichern();
-  }
-
-  artImport = null;
-  artSpeichern();
-  el('artImportErgebnis').innerHTML =
-    '<div class="hinweis gruen"><b>Übernommen.</b> '+neu+' neu angelegt, '+geaendert+
-    ' aktualisiert. Jede Zeile steht mit Namen im Archiv.</div>';
-  cloudStatus((neu+geaendert)+' Zeilen übernommen', '#5A9E2F');
-}
-
-function artCsv(){
-  const kopf = 'Nummer;Artikel;Kategorie;Einheit'+(darfPreise()? ';Preis':'')+
-    ';'+ALLGEMEIN.map(o => ORTE[o].kurz+'_Bestand;'+ORTE[o].kurz+'_Platz;'+ORTE[o].kurz+'_Min').join(';')+'\n';
-  const zeilen = artikel.map(a => {
-    const teile = [a.nr, a.name, a.kat, a.einheit];
-    if(darfPreise()) teile.push(de(a.preis||0,2));
-    ALLGEMEIN.forEach(o => { const b = ortBestand(o, a.nr);
-      teile.push(b? b.q : '', b? b.platz : '', b? (b.min||'') : ''); });
-    return teile.join(';');
-  }).join('\n');
-  lade(new Blob(['\ufeff'+kopf+zeilen], {type:'text/csv;charset=utf-8'}),
-       'Artikelbestand_'+datum()+'.csv');
-}
-
-/* Ab hier wird gezielt geschrieben: ein Dokument je Artikel und je
-   Standort-Bestand. Damit ueberschreiben sich gleichzeitige Buchungen nicht mehr. */
-const bestandId = (ort, nr) => ort + '__' + nr;
-
-function schreibFehler(e){ cloudStatus('Speichern fehlgeschlagen: '+(e.code||e), '#B3261E'); }
-
-function stammSchreiben(nr){
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  const a = artFind(nr); if(!a) return;
-  db.collection('artikel').doc(nr).set({...a,
-    updatedAt:new Date().toISOString(),
-    updatedBy: el('benutzer').value.trim() || angemeldet.email}).catch(schreibFehler);
-}
-
-function bestandSchreiben(ort, nr){
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  const b = ortBestand(ort, nr);
-  const dok = db.collection('bestand').doc(bestandId(ort, nr));
-  if(!b){ dok.delete().catch(schreibFehler); return; }
-  dok.set({ort, nr, q:b.q, platz:b.platz||'', min:b.min||0,
-    updatedAt:new Date().toISOString(),
-    updatedBy: el('benutzer').value.trim() || angemeldet.email}).catch(schreibFehler);
-}
-
-function bewegungSchreiben(bw){
-  bewegungen.push(bw);
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  db.collection('bewegungen').add(bw).catch(()=>{});
-}
-
-function stammLoeschen(nr, orte){
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  db.collection('artikel').doc(nr).delete().catch(schreibFehler);
-  orte.forEach(o => db.collection('bestand').doc(bestandId(o, nr)).delete().catch(()=>{}));
-}
-
-/* Nur noch neu zeichnen - das Schreiben passiert an der jeweiligen Stelle */
-function artSpeichern(){ zeichneArtikel(); }
-
-/* --- Bestellanforderung --- */
-/* Die gesammelte Bestellliste über dem Formular */
-function korbBereichZeichnen(){
-  const feld = el('korbBereich'); if(!feld) return;
-  const eigene = el('abUmfang').value === 'alle' ? warenkorb : korbEigene();
-  if(!eigene.length){
-    feld.innerHTML = '<div class="hinweis">Die Bestellliste ist leer. Sie f&uuml;llt sich von '+
-      'selbst, sobald beim Ausbuchen ein Artikel unter seinen Meldebestand f&auml;llt &ndash; '+
-      'oder du nimmst unten Positionen von Hand auf.</div>';
-    return;
-  }
-  const extern = eigene.filter(k => (artFind(k.nr)||{}).eigentum === 'extern');
-  const offen  = extern.filter(k => k.freigabe !== 'ja');
-  const aeltester = eigene.map(k => k.wann).sort()[0];
-  const tage = Math.floor((Date.now() - new Date(aeltester).getTime()) / 86400000);
-  const wert = eigene.reduce((sum,k) => sum + k.menge * ((artFind(k.nr)||{}).preis||0), 0);
-  feld.innerHTML =
-    '<div class="korbkopf'+(tage >= 2 ? ' korbalt':'')+'">'+
-      '<div><b>'+eigene.length+' Position(en) auf der Bestellliste</b>'+
-      '<div class="details">&auml;ltester Eintrag vor '+(tage===0? 'weniger als einem Tag' :
-        tage+' Tag'+(tage>1?'en':''))+
-        (darfPreise() && wert? ' &middot; rund '+de(wert,2)+' €':'')+'</div></div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
-        (offen.length? '<button class="btn" onclick="freigabeAnfragen()">Zustimmung anfragen ('+
-          offen.length+')</button>' : '')+
-        '<button class="btn gruen" onclick="korbUebernehmen()">Ins Formular &uuml;bernehmen</button>'+
-        '<button class="btn sek" onclick="korbAlleWeg()">Liste leeren</button>'+
-      '</div></div>'+
-    (offen.length
-      ? '<div class="hinweis gelb"><b>'+offen.length+' Position(en) sind Konsignationsware fremder Firmen.</b>'+
-        '<br>Diese Ware geh&ouml;rt bis zur Entnahme dem Lieferanten &ndash; vor der Bestellung muss '+
-        (offen.length===1? 'die zust&auml;ndige Firma' : 'die jeweilige Firma')+' zustimmen. '+
-        '&Uuml;ber &bdquo;Zustimmung anfragen&ldquo; geht eine Anfrage raus; sobald die Antwort da ist, '+
-        'hier auf <b>Freigabe</b> klicken.</div>'
-      : (extern.length? '<div class="hinweis gruen"><b>Alle Konsignationspositionen sind freigegeben.</b> '+
-          'Die Anforderung kann an den Einkauf gehen.</div>' : ''))+
-    '<div class="karte" style="padding:0;overflow:auto;max-height:36vh;margin-bottom:16px">'+
-    '<table class="liste"><thead><tr><th style="width:96px">Nummer</th><th>Artikel</th>'+
-    '<th>Standort</th><th style="text-align:right">Menge</th><th>Eigentum</th>'+
-    '<th>Bemerkung</th><th>aufgenommen</th><th style="width:44px"></th></tr></thead><tbody>'+
-    eigene.slice().sort((a,b) => a.wann.localeCompare(b.wann)).map(k => {
-      const a = artFind(k.nr) || {name:'(unbekannt)', einheit:''};
-      const b = ortBestand(k.ort, k.nr);
-      return '<tr><td><b>'+k.nr+'</b></td>'+
-        '<td>'+a.name+(b? '<br><span class="sub">Bestand '+b.q+' von '+b.min+'</span>':'')+'</td>'+
-        '<td><span class="ortkuerzel">'+(ORTE[k.ort]||{}).kurz+'</span></td>'+
-        '<td class="num"><input class="menge" type="number" min="1" value="'+k.menge+
-          '" onchange="korbMenge(\''+k.nr+'\',\''+k.ort+'\',this.value)"> '+(a.einheit||'')+'</td>'+
-        '<td>'+korbEigentumZelle(k, a)+'</td>'+
-        '<td style="color:var(--text-hell)">'+(k.bem||'')+'</td>'+
-        '<td class="sub">'+new Date(k.wann).toLocaleDateString('de-DE')+'<br>'+(k.wer||'')+'</td>'+
-        '<td><button class="mini" onclick="korbWeg(\''+k.nr+'\',\''+k.ort+'\')">&times;</button></td>'+
-        '</tr>';
-    }).join('')+'</tbody></table></div>';
-}
-
-function korbEigentumZelle(k, a){
-  if(a.eigentum !== 'extern') return '<span class="eigentumChip iwb">IWB</span>';
-  const firma = a.firma || 'externe Firma';
-  if(k.freigabe === 'ja')
-    return '<span class="eigentumChip extern">'+firma+'</span>'+
-           '<br><span class="pill ok" style="margin-top:3px">freigegeben</span>';
-  if(k.freigabe === 'angefragt')
-    return '<span class="eigentumChip extern">'+firma+'</span>'+
-           '<br><button class="mini" style="width:auto;padding:1px 9px;font-size:11px" '+
-           'onclick="freigabeSetzen(\''+k.nr+'\',\''+k.ort+'\',\'ja\')">Freigabe</button>'+
-           ' <span class="sub">angefragt</span>';
-  return '<span class="eigentumChip extern">'+firma+'</span>'+
-         '<br><button class="mini" style="width:auto;padding:1px 9px;font-size:11px" '+
-         'onclick="freigabeSetzen(\''+k.nr+'\',\''+k.ort+'\',\'ja\')">Freigabe</button>'+
-         ' <span class="pill warn">offen</span>';
-}
-
-function freigabeSetzen(nr, ort, wert){
-  const k = warenkorb.find(x => x.nr === nr && x.ort === ort); if(!k) return;
-  const a = artFind(nr) || {name:nr, firma:''};
-  k.freigabe = wert;
-  if(wert === 'ja'){
-    k.freigabeAm = new Date().toISOString();
-    k.freigabeVon = el('benutzer').value.trim() || (angemeldet? angemeldet.email : '');
-    notiere('Freigabe', nr+' '+a.name, ortName(ort), null, k.menge,
-            'Zustimmung von '+(a.firma||'externer Firma')+' liegt vor');
-  }
-  korbSpeichern();
-}
-
-/* Anfrage an die Lieferanten, je Firma eine Mail */
-function freigabeAnfragen(){
-  const eigene = el('abUmfang').value === 'alle' ? warenkorb : korbEigene();
-  const offen = eigene.filter(k => {
-    const a = artFind(k.nr) || {};
-    return a.eigentum === 'extern' && k.freigabe !== 'ja';
-  });
-  if(!offen.length) return alert('Es sind keine externen Positionen offen.');
-  const jeFirma = {};
-  offen.forEach(k => {
-    const a = artFind(k.nr) || {firma:''};
-    const f = a.firma || '(ohne Firma)';
-    (jeFirma[f] = jeFirma[f] || []).push(k);
-  });
-  const ohneMail = [];
-  let gesendet = 0;
-  Object.entries(jeFirma).forEach(([name, posten]) => {
-    const firma = firmaFind(name);
-    posten.forEach(k => { k.freigabe = 'angefragt'; });
-    if(!mailEinst.url || !firma || !firma.mail){ ohneMail.push(name); return; }
-    const zeilen = posten.map(k => {
-      const a = artFind(k.nr) || {name:k.nr, einheit:''};
-      const b = ortBestand(k.ort, k.nr);
-      return '  · '+a.name+' ('+k.nr+') – '+k.menge+' '+(a.einheit||'')+
-             (b? ', aktueller Bestand bei uns: '+b.q+' von '+b.min : '');
-    }).join('\n');
-    fetch(versandUrl(), {method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        an: firma.mail,
-        betreff: 'Konsignationslager IWB – Nachfüllung angefragt',
-        text: (firma.ansprech? 'Guten Tag '+firma.ansprech+',\n\n' : 'Guten Tag,\n\n')+
-          'in unserem Konsignationslager sind folgende Positionen unter den vereinbarten '+
-          'Mindestbestand gefallen:\n\n'+zeilen+'\n\n'+
-          'Bitte teilen Sie uns mit, ob und wann Sie nachfüllen können.\n\n'+
-          'Mit freundlichen Grüßen\n'+
-          (el('benutzer').value.trim() || '')+'\nIWB Industriepark Werk Bobingen'
-      })}).catch(()=>{});
-    gesendet++;
-    notiere('Freigabe','','',null,null,'Anfrage an '+name+' über '+posten.length+' Position(en)');
-  });
-  korbSpeichern();
-  let text = gesendet? 'Anfrage an '+gesendet+' Firma(en) verschickt.' : '';
-  if(ohneMail.length)
-    text += (text? '\n\n':'')+'Für diese Firmen ist keine Mailadresse hinterlegt:\n'+
-      ohneMail.map(n => '  · '+n).join('\n')+
-      '\n\nBitte unter Verwaltung → Firmen eintragen, oder direkt anrufen und dann '+
-      'die Freigabe hier setzen.';
-  alert(text || 'Nichts zu versenden.');
-}
-
-function korbMenge(nr, ort, wert){
-  const k = warenkorb.find(x => x.nr === nr && x.ort === ort); if(!k) return;
-  k.menge = Math.max(1, parseInt(wert,10) || 1);
-  korbSpeichern();
-}
-function korbAlleWeg(){
-  const eigene = el('abUmfang').value === 'alle' ? warenkorb : korbEigene();
-  if(!confirm('Alle '+eigene.length+' Position(en) von der Bestellliste nehmen?')) return;
-  const behalten = el('abUmfang').value === 'alle' ? [] : warenkorb.filter(k => k.ort !== standort);
-  notiere('Bestellliste','','',eigene.length,0,'Liste geleert ohne zu bestellen');
-  warenkorb = behalten;
-  korbSpeichern();
-}
-
-/* Korb ins Formular schreiben, damit Mengen und Preise noch angepasst werden können */
-function korbUebernehmen(){
-  const eigene = el('abUmfang').value === 'alle' ? warenkorb : korbEigene();
-  if(!eigene.length) return;
-  abLeeren();
-  el('abanfBody').innerHTML = '';
-  eigene.slice().sort((a,b) => {
-    const na = (artFind(a.nr)||{name:a.nr}).name, nb = (artFind(b.nr)||{name:b.nr}).name;
-    return na.localeCompare(nb,'de');
-  }).forEach(k => {
-    const b = ortBestand(k.ort, k.nr);
-    const grund = (ORTE[k.ort]||{}).kurz + (b? ': '+b.q+'/'+b.min : '') + (k.bem? ' · '+k.bem : '');
-    abZeileNeu(k.nr, k.menge, grund);
-  });
-  cloudStatus(eigene.length+' Position(en) ins Formular übernommen', '#5A9E2F');
-}
-
-/* Bestellung abschicken: Mail an den Einkauf, Korb leeren, alles ins Archiv */
-function abAbsenden(){
-  const z = abLesen();
-  if(!z.length) return alert('Bitte zuerst Positionen ins Formular übernehmen oder eintragen.');
-  if(!mailEinst.url || !mailEinst.einkauf)
-    return alert('Unter Verwaltung fehlt die Adresse des Versand-Scripts oder die Mailadresse des Einkaufs.\n\n'+
-                 'Du kannst die Anforderung solange als PDF drucken oder als CSV speichern.');
-  const eigene = el('abUmfang').value === 'alle' ? warenkorb : korbEigene();
-  const blockiert = eigene.filter(k => {
-    const a = artFind(k.nr) || {};
-    return a.eigentum === 'extern' && k.freigabe !== 'ja';
-  });
-  if(blockiert.length){
-    const namen = blockiert.map(k => {
-      const a = artFind(k.nr) || {name:k.nr, firma:''};
-      return '  \u00b7 '+a.name+' ('+(a.firma||'externe Firma')+')';
-    }).join('\n');
-    return alert('Für diese Konsignationspositionen fehlt noch die Zustimmung der Firma:\n\n'+namen+
-      '\n\nBitte erst die Zustimmung einholen und die Freigabe setzen, oder die Positionen '+
-      'von der Liste nehmen.');
-  }
-  const umfang = el('abUmfang').value === 'alle' ? 'alle Standorte' : ortName(standort);
-  const nr = 'BANF-'+datum()+'-'+String((zaehlerBanf()+1)).padStart(2,'0');
-  const ges = z.reduce((s,x) => s + x.menge*x.preis, 0);
-  const eilig = z.some(x => {
-    const t = warenkorb.find(k => k.nr === x.nr);
-    const b = t ? ortBestand(t.ort, x.nr) : null;
-    return b && dringlichkeit(b) && dringlichkeit(b).stufe !== 'niedrig';
-  });
-  const text =
-    'Bestellanforderung '+nr+'\n'+
-    'Standort: '+umfang+'\n'+
-    'Angefordert von: '+(el('benutzer').value.trim() || (angemeldet? angemeldet.email : ''))+'\n'+
-    'Datum: '+new Date().toLocaleString('de-DE')+'\n\n'+
-    z.map((x,i) =>
-      (i+1)+'. '+x.name+'\n'+
-      '   Nummer:  '+(x.nr||'–')+'\n'+
-      '   Menge:   '+x.menge+' '+(x.einheit||'')+
-      (darfPreise() && x.preis? '\n   Preis:   '+de(x.preis,2)+' EUR  (Summe '+de(x.menge*x.preis,2)+' EUR)':'')+
-      (x.grund? '\n   Bedarf:  '+x.grund : '')+
-      ((artFind(x.nr)||{}).eigentum === 'extern'
-        ? '\n   Hinweis: Konsignationsware '+((artFind(x.nr)||{}).firma||'')+
-          ' \u2013 Zustimmung liegt vor' : '')
-    ).join('\n\n')+
-    (darfPreise() && ges? '\n\nGeschätzte Gesamtsumme: '+de(ges,2)+' EUR' : '')+
-    '\n\nDiese Anforderung wurde aus der Lagerverwaltung erstellt.';
-  fetch(versandUrl(), {method:'POST', mode:'no-cors',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({
-      an: mailEinst.einkauf,
-      betreff: (eilig? '[DRINGEND] ':'') + 'Bestellanforderung '+nr+' – '+umfang,
-      text,
-      dateiname: nr+'.csv',
-      csv: banfCsvText(z)
-    })}).catch(()=>{});
-  // Korb leeren und protokollieren
-  const betroffen = el('abUmfang').value === 'alle' ? warenkorb.slice() : korbEigene();
-  betroffen.forEach(k => {
-    const a = artFind(k.nr) || {name:k.nr};
-    notiere('BANF', k.nr+' '+a.name, ortName(k.ort), k.menge, null, nr+' an den Einkauf gesendet');
-  });
-  warenkorb = el('abUmfang').value === 'alle' ? [] : warenkorb.filter(k => k.ort !== standort);
-  korbErinnert = '';
-  korbSpeichern();
-  banfZaehlerHoch();
-  logge(nr+' mit '+z.length+' Position(en) an '+mailEinst.einkauf+' gesendet');
-  alert(nr+' wurde an den Einkauf geschickt.\n\n'+z.length+' Position(en). '+
-        'Die Bestellliste ist damit abgearbeitet.');
-  zeichneABanf();
-}
-
-function banfCsvText(z){
-  const kopf = 'Pos;Nummer;Artikel;Menge;Einheit'+(darfPreise()? ';Preis;Summe':'')+';Bedarf\n';
-  return kopf + z.map((x,i) => {
-    const t = [i+1, x.nr, x.name, x.menge, x.einheit];
-    if(darfPreise()) t.push(de(x.preis,2), de(x.menge*x.preis,2));
-    t.push(String(x.grund).replace(/;/g,','));
-    return t.join(';');
-  }).join('\n');
-}
-
-/* Fortlaufende Nummer je Tag */
-function zaehlerBanf(){
-  const heute = datum();
-  return archiv.filter(e => e.art === 'BANF' && (e.i||'').includes('BANF-'+heute)).length ? 1 : 0;
-}
-function banfZaehlerHoch(){ /* Zählung läuft über das Archiv */ }
-
-/* Erinnerung, wenn die Liste liegen bleibt */
-function korbErinnerungPruefen(){
-  if(rolle === 'ansicht' || !warenkorb.length) return;
-  const heute = new Date().toISOString().slice(0,10);
-  if(korbErinnert === heute) return;
-  const aeltester = warenkorb.map(k => k.wann).sort()[0];
-  const tage = Math.floor((Date.now() - new Date(aeltester).getTime()) / 86400000);
-  if(tage < 2) return;
-  korbErinnert = heute;
-  korbSpeichern();
-  const empfaenger = (warenkorb[0] && warenkorb[0].wer && warenkorb[0].wer.includes('@'))
-    ? warenkorb[0].wer
-    : (angemeldet ? angemeldet.email : '');
-  notiere('Bestellliste','','',warenkorb.length,null,
-          'Erinnerung: Liste liegt seit '+tage+' Tagen');
-  if(!mailEinst.url || !empfaenger) return;
-  const zeilen = warenkorb.map(k => {
-    const a = artFind(k.nr) || {name:k.nr, einheit:''};
-    const b = ortBestand(k.ort, k.nr);
-    return '  · '+a.name+' ('+k.nr+') – '+k.menge+' '+(a.einheit||'')+
-           ', '+(ORTE[k.ort]||{}).kurz+(b? ', Bestand '+b.q+' von '+b.min : '');
-  }).join('\n');
-  fetch(versandUrl(), {method:'POST', mode:'no-cors',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({
-      an: empfaenger,
-      betreff: 'Erinnerung: '+warenkorb.length+' Position(en) noch nicht bestellt',
-      text: 'Auf der Bestellliste liegen seit '+tage+' Tagen Positionen, die noch nicht an den '+
-            'Einkauf gegangen sind:\n\n'+zeilen+'\n\n'+
-            'Bitte in der Lagerverwaltung unter „Bestellanforderung“ prüfen: absenden, '+
-            'anpassen oder von der Liste nehmen.'
-    })}).catch(()=>{});
-  logge('Erinnerung an offene Bestellliste versendet');
-}
-
-function meldeUebersichtZeichnen(){
-  const feld = el('meldeUebersicht'); if(!feld) return;
-  const orte = el('abUmfang').value === 'alle' ? ALLGEMEIN : [standort];
-  const treffer = [];
-  orte.forEach(o => Object.entries(bestand[o]||{}).forEach(([nr,b]) => {
-    const d = dringlichkeit(b);
-    if(d) treffer.push({o, nr, b, d});
-  }));
-  if(!treffer.length){ feld.innerHTML =
-    '<div class="hinweis gruen">Kein Artikel liegt unter seinem Meldebestand.</div>'; return; }
-  const ordnung = {leer:0, kritisch:1, niedrig:2};
-  treffer.sort((a,b) => ordnung[a.d.stufe] - ordnung[b.d.stufe] || a.b.q - b.b.q);
-  const leer = treffer.filter(t => t.d.stufe === 'leer').length;
-  const krit = treffer.filter(t => t.d.stufe === 'kritisch').length;
-  feld.innerHTML =
-    '<div class="hinweis '+(leer||krit? 'rot':'gelb')+'"><b>'+treffer.length+
-      ' Artikel unter Meldebestand.</b>'+
-      (leer? ' '+leer+' davon komplett leer.':'')+
-      (krit? ' '+krit+' kritisch (halber Meldebestand oder weniger).':'')+'</div>'+
-    '<div class="karte" style="padding:0;overflow:auto;max-height:38vh;margin-bottom:16px">'+
-    '<table class="liste"><thead><tr><th style="width:96px">Nummer</th><th>Artikel</th>'+
-    '<th>Standort</th><th>Platz</th><th style="text-align:right">Bestand</th>'+
-    '<th style="text-align:right">Melde&shy;bestand</th><th>Dringlichkeit</th></tr></thead><tbody>'+
-    treffer.map(t => {
-      const a = artFind(t.nr) || {name:'(unbekannt)', einheit:''};
-      return '<tr'+(t.d.stufe!=='niedrig'? ' style="background:#FBEEED"':'')+'>'+
-        '<td><b>'+t.nr+'</b></td><td>'+a.name+
-          (a.notiz? '<br><span class="sub">'+a.notiz+'</span>':'')+'</td>'+
-        '<td><span class="ortkuerzel">'+(ORTE[t.o]||{}).kurz+'</span></td>'+
-        '<td>'+(t.b.platz||'')+'</td>'+
-        '<td class="num"><b>'+t.b.q+'</b> '+(a.einheit||'')+'</td>'+
-        '<td class="num">'+t.b.min+'</td>'+
-        '<td style="color:'+t.d.farbe+';font-weight:600">'+t.d.text+'</td></tr>';
-    }).join('')+'</tbody></table></div>';
-}
-
-function zeichneABanf(){
-  preisSpaltenSetzen();
-  korbBereichZeichnen();
-  meldeUebersichtZeichnen();
-  if(!document.querySelector('#abanfBody tr')) abZeileNeu();
-  abSumme();
-}
-
-function abZeileNeu(nr='', menge='', grund=''){
-  const a = artFind(nr) || {nr:'', name:'', einheit:'', preis:0};
-  const tr = document.createElement('tr');
-  tr.innerHTML =
-    '<td><input type="text" class="qNr" value="'+(a.nr||'')+'" placeholder="A-0001" '+
-      'oninput="abZeileFuellen(this)"></td>'+
-    '<td><input type="text" class="qName" value="'+(a.name||'')+'"></td>'+
-    '<td><input type="number" class="qMenge" min="1" value="'+(menge||1)+'" oninput="abSumme()"></td>'+
-    '<td><input type="text" class="qEinheit" value="'+(a.einheit||'')+'"></td>'+
-    '<td class="preisSpalte'+(darfPreise()?'':' verstecke')+'">'+
-      '<input type="number" step="0.01" class="qPreis" value="'+(a.preis||0)+'" oninput="abSumme()"></td>'+
-    '<td class="preisSpalte'+(darfPreise()?'':' verstecke')+'"><span class="qSumme sub">–</span></td>'+
-    '<td><input type="text" class="qGrund" value="'+grund+'" placeholder="optional"></td>'+
-    '<td><button class="mini" onclick="this.closest(\'tr\').remove();abSumme()">&times;</button></td>';
-  el('abanfBody').appendChild(tr);
-  abSumme();
-}
-function abZeileFuellen(feld){
-  const tr = feld.closest('tr');
-  const a = artFind(feld.value.trim());
-  if(!a) return;
-  tr.querySelector('.qName').value = a.name;
-  tr.querySelector('.qEinheit').value = a.einheit || '';
-  const p = tr.querySelector('.qPreis'); if(p) p.value = a.preis || 0;
-  abSumme();
-}
-function abLesen(){
-  return [...document.querySelectorAll('#abanfBody tr')].map(tr => {
-    const g = k => { const e = tr.querySelector(k); return e ? e.value.trim() : ''; };
-    return {nr:g('.qNr'), name:g('.qName'), menge:parseInt(g('.qMenge'),10)||0,
-            einheit:g('.qEinheit'), preis:parseFloat((g('.qPreis')||'0').replace(',','.'))||0,
-            grund:g('.qGrund')};
-  }).filter(z => z.name && z.menge > 0);
-}
-function abSumme(){
-  let ges = 0;
-  [...document.querySelectorAll('#abanfBody tr')].forEach(tr => {
-    const m = parseInt((tr.querySelector('.qMenge')||{}).value,10)||0;
-    const pf = tr.querySelector('.qPreis');
-    const p = pf ? (parseFloat(String(pf.value).replace(',','.'))||0) : 0;
-    const zelle = tr.querySelector('.qSumme');
-    if(zelle) zelle.textContent = p ? de(m*p,2)+' \u20ac' : '–';
-    ges += m*p;
-  });
-  const z = abLesen();
-  el('abanfSumme').innerHTML = z.length
-    ? '<div class="hinweis" style="margin:12px 0 0"><b>'+z.length+' Position(en)</b>'+
-      (darfPreise()? ' &middot; gesch&auml;tzte Summe <b>'+de(ges,2)+' \u20ac</b>':'')+'</div>' : '';
-}
-function abLeeren(){ el('abanfBody').innerHTML=''; abSumme(); }
-
-function abVorschlag(){
-  abLeeren();
-  const orte = el('abUmfang').value === 'alle' ? ALLGEMEIN : [standort];
-  const bedarf = {};
-  orte.forEach(o => {
-    Object.entries(bestand[o]||{}).forEach(([nr,b]) => {
-      if(!dringlichkeit(b)) return;
-      const menge = Math.max(1, (b.min*2) - b.q);
-      if(!bedarf[nr]) bedarf[nr] = {menge:0, teile:[]};
-      bedarf[nr].menge += menge;
-      bedarf[nr].teile.push(ORTE[o].kurz+': '+b.q+'/'+b.min+' \u2192 +'+menge);
-    });
-  });
-  const eintraege = Object.entries(bedarf);
-  if(!eintraege.length){ alert('Kein Artikel liegt auf oder unter dem Mindestbestand.'); return; }
-  eintraege.sort((a,b) => (artFind(a[0])||{name:''}).name.localeCompare((artFind(b[0])||{name:''}).name,'de'));
-  eintraege.forEach(([nr,d]) => abZeileNeu(nr, d.menge, d.teile.join(' \u00b7 ')));
-}
-
-function abCsv(){
-  const z = abLesen();
-  if(!z.length) return alert('Keine Positionen vorhanden.');
-  const kopf = 'Pos;Nummer;Artikel;Menge;Einheit'+(darfPreise()? ';Preis;Summe':'')+';Bedarf\n';
-  const txt = z.map((x,i) => {
-    const t = [i+1, x.nr, x.name, x.menge, x.einheit];
-    if(darfPreise()) t.push(de(x.preis,2), de(x.menge*x.preis,2));
-    t.push(String(x.grund).replace(/;/g,','));
-    return t.join(';');
-  }).join('\n');
-  lade(new Blob(['\ufeff'+kopf+txt], {type:'text/csv;charset=utf-8'}), 'BANF_'+datum()+'.csv');
-}
-
-function abDrucken(){
-  const z = abLesen();
-  if(!z.length) return alert('Bitte mindestens eine Position eintragen.');
-  const umfang = el('abUmfang').value === 'alle' ? 'alle Standorte' : ortName(standort);
-  const nr = 'BANF-'+datum()+'-01';
-  const ges = z.reduce((s,x) => s + x.menge*x.preis, 0);
-  el('druck').innerHTML =
-   '<div class="dseite">'+
-    '<div class="bkopf"><div><p class="titel">BESTELLANFORDERUNG</p>'+
-      '<div class="unter">Allgemeines Lager &middot; '+umfang+'</div></div>'+
-      '<div style="text-align:right"><img class="dlogo" src="'+LOGO+'" alt="IWB">'+
-      '<div class="unter" style="margin-top:5px"><b>'+nr+'</b><br>'+
-      new Date().toLocaleDateString('de-DE')+'</div></div></div>'+
-    '<table class="bkopfdaten">'+
-      '<tr><td class="l">Angefordert von</td><td><b>'+(el('benutzer').value.trim()||'')+'</b></td></tr>'+
-      '<tr><td class="l">Umfang</td><td><b>'+umfang+'</b></td></tr>'+
-    '</table>'+
-    '<table class="bpos"><thead><tr><th style="width:9mm">Pos</th><th style="width:22mm">Nummer</th>'+
-      '<th>Artikel</th><th style="width:18mm" class="n">Menge</th><th style="width:18mm">Einheit</th>'+
-      (darfPreise()? '<th style="width:20mm" class="n">Preis</th><th style="width:22mm" class="n">Summe</th>':'')+
-      '<th style="width:44mm">Bedarf</th></tr></thead><tbody>'+
-      z.map((x,i) => '<tr><td>'+(i+1)+'</td><td>'+x.nr+'</td><td><b>'+x.name+'</b></td>'+
-        '<td class="n"><b>'+x.menge+'</b></td><td>'+x.einheit+'</td>'+
-        (darfPreise()? '<td class="n">'+de(x.preis,2)+'</td><td class="n">'+de(x.menge*x.preis,2)+'</td>':'')+
-        '<td style="font-size:7pt">'+x.grund+'</td></tr>').join('')+
-      (darfPreise()? '<tr class="summe"><td colspan="6">Summe</td><td class="n">'+de(ges,2)+' \u20ac</td><td></td></tr>':'')+
-    '</tbody></table>'+
-    '<div class="bunterschrift"><div>Datum, Anforderer</div><div>Datum, Freigabe</div>'+
-      '<div>Datum, Einkauf</div></div>'+
-   '</div>';
-  window.print();
-  notiere('BANF','','',null,null,nr+': '+z.length+' Position(en), '+umfang);
-}
-
-/* --- Verbrauch allgemein --- */
-let avZeitraum = 1;
-function zeichneAVerbrauch(){
-  preisSpaltenSetzen();
-  if(!bewegungenGeladen && cloudAktiv && angemeldet){
-    el('avKennzahlen').innerHTML = '<p class="sub" style="margin:0">Verbrauchsdaten werden geladen …</p>';
-    bewegungenLaden().then(zeichneAVerbrauch);
-    return;
-  }
-  const orte = el('avUmfang').value === 'alle' ? ALLGEMEIN : [standort];
-  const monate = monatsReihe(24);
-  const grenze = new Date(); grenze.setMonth(grenze.getMonth() - avZeitraum);
-  const gStr = grenze.toISOString().slice(0,10);
-
-  const passend = bewegungen.filter(b => orte.includes(b.ort));
-  passend.forEach(b => { const m = monate.find(x => x.schl === b.d.slice(0,7)); if(m) m.summe += b.n; });
-
-  const imZeitraum = passend.filter(b => b.d >= gStr);
-  const jeArt = {};
-  imZeitraum.forEach(b => {
-    const k = b.nr+'|'+b.ort;
-    jeArt[k] = (jeArt[k]||0) + b.n;
-  });
-  const top = Object.entries(jeArt).sort((a,b)=>b[1]-a[1]).slice(0,40);
-  const summe = imZeitraum.reduce((s,b)=>s+b.n,0);
-  const wert = imZeitraum.reduce((s,b)=> s + b.n * preisAm(b.nr, b.d), 0);
-
-  el('avKennzahlen').innerHTML =
-    kz(summe,'Einheiten entnommen') +
-    (darfPreise()? kz(de(wert,0)+' \u20ac','Materialwert') : '') +
-    kz(new Set(imZeitraum.map(b=>b.nr)).size,'verschiedene Artikel') +
-    kz(orte.length,'Standorte') +
-    kz(imZeitraum.length,'Buchungen');
-
-  el('avChart').innerHTML = chartMonate(monate);
-  zweckTabelle(imZeitraum);
-  el('avBody').innerHTML = top.length ? top.map(([k,n]) => {
-    const [nr, ort] = k.split('|');
-    const a = artFind(nr) || {name:'(unbekannt)', einheit:'', preis:0};
-    const b = ortBestand(ort, nr);
-    return '<tr><td><b>'+nr+'</b></td><td>'+a.name+'</td>'+
-      '<td><span class="ortkuerzel">'+(ORTE[ort]||{}).kurz+'</span>'+ortName(ort)+'</td>'+
-      '<td class="num"><b>'+n+'</b> '+(a.einheit||'')+'</td>'+
-      '<td class="num preisSpalte'+(darfPreise()?'':' verstecke')+'">'+
-        (a.preis? de(n*a.preis,2)+' \u20ac':'')+'</td>'+
-      '<td class="num">'+(b? b.q : '–')+'</td></tr>';
-  }).join('') : '<tr><td colspan="6" style="padding:18px;color:var(--text-hell)">'+
-    'Im gew&auml;hlten Zeitraum wurde nichts entnommen.</td></tr>';
-}
-
-/* ---------- Standorte ---------- */
-let standort = null;
-let keller = [];   // {id, name, kat, platz, q, einheit, min, notiz}
-
-function standortWaehlen(){
-  if(istTablet() && !codePruefen('Der Standortwechsel ist am Tablet geschützt.')) return;
-  const erlaubt = erlaubteOrte();
-  const karten = Object.keys(ORTE).filter(o => erlaubt.includes(o)).map(o => {
-    const d = ORTE[o];
-    const anz = o === 'stahl'
-      ? alleItems().length + ' Maße'
-      : Object.keys(bestand[o]||{}).length + ' Artikel';
-    const knapp = o === 'stahl' ? 0 :
-      Object.values(bestand[o]||{}).filter(b => b.min > 0 && b.q <= b.min).length;
-    return '<button class="ortfeld" style="border-left-color:'+d.farbe+'" '+
-      'onclick="standortSetzen(\''+o+'\')">'+
-      '<b>'+d.name+'</b><span>'+d.text+'</span>'+
-      '<span class="zahlen">'+anz+(knapp? ' &middot; <b style="color:#B3261E">'+knapp+' knapp</b>':'')+'</span>'+
-      '</button>';
-  }).join('');
-  el('wahlBox').innerHTML =
-    '<div class="wahlhuelle"><div class="wahlkarte" style="max-width:820px">'+
-    '<img src="'+LOGO+'" alt="IWB">'+
-    '<h2>Standort wählen</h2>'+
-    '<p class="intro">Welches Lager möchtest du öffnen?</p>'+
-    '<div class="ortgitter">'+ (karten || '<p class="sub">Für dieses Konto ist kein Standort freigegeben.</p>') +'</div>'+
-    '</div></div>';
-}
-
+/* ---------- Ansichten ---------- */
 const ALLE_ANSICHTEN = ['plan','bestand','stueck','zaehlen','banf','verbrauch',
-                        'archiv','keller','artikel','abanf','averbrauch','verwaltung','daten'];
+                        'archiv','verwaltung','daten'];
 
 /* Was ein Ausbilder nicht sehen darf */
 const AUSBILDER_TABU = ['verwaltung','daten','archiv'];
@@ -5424,10 +3138,6 @@ function ansichtOeffnen(ziel){
     b.classList.toggle('aktiv', b.dataset.ansicht === ziel));
   ALLE_ANSICHTEN.forEach(v => { const e = el('v-'+v); if(e) e.classList.toggle('verstecke', v !== ziel); });
   if(ziel === 'plan') skaliere();
-  if(ziel === 'keller') zeichneKeller();
-  if(ziel === 'artikel') zeichneArtikel();
-  if(ziel === 'abanf') zeichneABanf();
-  if(ziel === 'averbrauch') zeichneAVerbrauch();
   if(ziel === 'archiv') zeichneArchiv();
   if(ziel === 'verwaltung') zeichneVerwaltung();
   if(ziel === 'verbrauch') zeichneVerbrauch();
@@ -5435,174 +3145,6 @@ function ansichtOeffnen(ziel){
   menuZu();
   try { window.scrollTo({top:0, behavior:'instant'}); } catch(e){ window.scrollTo(0,0); }
 }
-
-function standortSetzen(id){
-  standort = id;
-  el('wahlBox').innerHTML = '';
-  el('standortBand').style.display = 'flex';
-  el('standortName').innerHTML = ORTE[id] ? ORTE[id].name : id;
-  sichtbarkeitSetzen();
-  korbAnzeigeAktualisieren();
-  vollbildBeschriften();
-  ansichtOeffnen(id === 'stahl' ? 'plan' : 'artikel');
-}
-
-/* ---------- Kellerlager ---------- */
-const kNeueId = () => 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-
-function zeichneKeller(){
-  const suche = el('kSuche').value.trim().toLowerCase();
-  const kat = el('kKategorie').value;
-  const nurKnapp = el('kNurKnapp').checked;
-
-  const kategorien = [...new Set(keller.map(a => a.kat).filter(Boolean))].sort();
-  const gewaehlt = el('kKategorie').value;
-  el('kKategorie').innerHTML = '<option value="">alle Kategorien</option>' +
-    kategorien.map(k => '<option'+(k===gewaehlt?' selected':'')+'>'+k+'</option>').join('');
-
-  let liste = keller.slice();
-  if(suche) liste = liste.filter(a =>
-    (a.name+' '+a.kat+' '+a.platz+' '+(a.notiz||'')).toLowerCase().includes(suche));
-  if(kat) liste = liste.filter(a => a.kat === kat);
-  if(nurKnapp) liste = liste.filter(a => a.min > 0 && a.q <= a.min);
-  liste.sort((a,b) => (a.platz||'').localeCompare(b.platz||'', 'de', {numeric:true}) ||
-                      a.name.localeCompare(b.name,'de'));
-
-  const knapp = keller.filter(a => a.min > 0 && a.q <= a.min).length;
-  const leer  = keller.filter(a => a.q === 0).length;
-  el('kKennzahlen').innerHTML =
-    kz(keller.length,'Artikel') + kz(kategorien.length,'Kategorien') +
-    kz([...new Set(keller.map(a=>a.platz).filter(Boolean))].length,'Pl&auml;tze') +
-    kz(knapp,'knapp', knapp>0) + kz(leer,'leer', leer>0);
-
-  el('kellerBody').innerHTML = liste.map(a => {
-    const st = a.q === 0 ? '<span class="pill krit">leer</span>'
-      : (a.min > 0 && a.q <= a.min) ? '<span class="pill warn">nachbestellen</span>'
-      : '<span class="pill ok">ok</span>';
-    return '<tr><td><b>'+a.name+'</b>'+(a.notiz? '<br><span class="sub">'+a.notiz+'</span>':'')+'</td>'+
-      '<td style="color:var(--text-hell)">'+(a.kat||'')+'</td>'+
-      '<td>'+(a.platz||'')+'</td>'+
-      '<td class="num"><b>'+a.q+'</b></td><td style="color:var(--text-hell)">'+(a.einheit||'')+'</td>'+
-      '<td style="white-space:nowrap">'+
-        (nurLesen()? '<span class="sub">gesperrt</span>' :
-          '<button class="mini" onclick="kellerAendern(\''+a.id+'\',-1)">&minus;</button> '+
-          '<input class="menge" type="number" value="'+a.q+'" onchange="kellerSetzen(\''+a.id+'\',this.value)"> '+
-          '<button class="mini" onclick="kellerAendern(\''+a.id+'\',1)">+</button>')+'</td>'+
-      '<td class="num">'+(a.min || '')+'</td><td>'+st+'</td>'+
-      '<td style="white-space:nowrap">'+((istTablet()||nurLesen())? '' :
-        '<button class="mini" onclick="kellerBearbeiten(\''+a.id+'\')">&#9998;</button> '+
-        '<button class="mini" onclick="kellerLoeschen(\''+a.id+'\')">&times;</button>')+'</td></tr>';
-  }).join('') || '<tr><td colspan="9" style="padding:18px;color:var(--text-hell)">'+
-    (keller.length? 'Nichts gefunden.' : 'Noch keine Artikel. Über „+ Artikel anlegen“ den ersten eintragen.')+'</td></tr>';
-}
-
-function kellerAendern(id, delta){
-  if(nurLesen()) return alert('Dieser Zugang darf nichts buchen.');
-  const a = keller.find(x => x.id === id); if(!a) return;
-  const alt = a.q;
-  a.q = Math.max(0, a.q + delta);
-  notiere('Keller', a.name, a.platz || '', alt, a.q, '');
-  kellerSpeichern();
-}
-function kellerSetzen(id, wert){
-  if(nurLesen()) return alert('Dieser Zugang darf nichts buchen.');
-  const a = keller.find(x => x.id === id); if(!a) return;
-  const neu = Math.max(0, Math.round(parseFloat(String(wert).replace(',','.')) || 0));
-  if(neu === a.q) return;
-  const alt = a.q; a.q = neu;
-  notiere('Keller', a.name, a.platz || '', alt, a.q, '');
-  kellerSpeichern();
-}
-function kellerLoeschen(id){
-  const a = keller.find(x => x.id === id); if(!a) return;
-  if(!confirm('„'+a.name+'“ wirklich löschen?')) return;
-  keller = keller.filter(x => x.id !== id);
-  notiere('Keller', a.name, a.platz || '', a.q, null, 'Artikel gelöscht');
-  kellerSpeichern();
-}
-function kellerNeu(){ kellerFormular(null); }
-function kellerBearbeiten(id){ kellerFormular(keller.find(x => x.id === id)); }
-
-function kellerFormular(a){
-  const neu = !a;
-  a = a || {id:kNeueId(), name:'', kat:'', platz:'', q:0, einheit:'Stück', min:0, notiz:''};
-  el('dialogBox').innerHTML =
-    '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:560px">'+
-    '<div class="kopf"><div><b>'+(neu? 'Neuer Artikel' : 'Artikel bearbeiten')+'</b>'+
-    '<span>&nbsp;Gebäude 30 · Keller</span></div>'+
-    '<button class="zu" onclick="schliesse()">&times;</button></div>'+
-    '<div class="rumpf"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-      '<label style="grid-column:1/3">Bezeichnung<input type="text" id="kName" value="'+a.name+'" placeholder="z. B. Toilettenpapier 3-lagig"></label>'+
-      '<label>Kategorie<input type="text" id="kKat" value="'+a.kat+'" placeholder="z. B. Hygiene, Büro"></label>'+
-      '<label>Platz<input type="text" id="kPlatz" value="'+a.platz+'" placeholder="z. B. Regal 3 / Fach B"></label>'+
-      '<label>Bestand<input type="number" id="kQ" value="'+a.q+'" min="0"></label>'+
-      '<label>Einheit<input type="text" id="kEinheit" value="'+(a.einheit||'')+'" placeholder="Stück, Pack, Karton"></label>'+
-      '<label>Mindestbestand<input type="number" id="kMin" value="'+(a.min||0)+'" min="0"></label>'+
-      '<label style="grid-column:1/3">Notiz<input type="text" id="kNotiz" value="'+(a.notiz||'')+'" placeholder="optional"></label>'+
-    '</div></div>'+
-    '<div class="fuss"><button class="btn sek" onclick="schliesse()">Abbrechen</button>'+
-    '<button class="btn" onclick="kellerSpeichernForm(\''+a.id+'\','+(neu?'true':'false')+')">Speichern</button></div>'+
-    '</div></div>';
-  setTimeout(() => el('kName').focus(), 50);
-}
-
-function kellerSpeichernForm(id, neu){
-  const name = el('kName').value.trim();
-  if(!name){ alert('Bitte eine Bezeichnung eingeben.'); return; }
-  const daten = {id, name, kat: el('kKat').value.trim(), platz: el('kPlatz').value.trim(),
-    q: Math.max(0, parseInt(el('kQ').value,10) || 0), einheit: el('kEinheit').value.trim(),
-    min: Math.max(0, parseInt(el('kMin').value,10) || 0), notiz: el('kNotiz').value.trim()};
-  if(neu){
-    keller.push(daten);
-    notiere('Keller', name, daten.platz, null, daten.q, 'Artikel angelegt');
-  } else {
-    const ix = keller.findIndex(x => x.id === id);
-    const alt = keller[ix];
-    notiere('Keller', name, daten.platz, alt.q, daten.q,
-            alt.name !== name ? 'umbenannt von '+alt.name : 'bearbeitet');
-    keller[ix] = daten;
-  }
-  schliesse();
-  kellerSpeichern();
-}
-
-function kellerCsv(){
-  if(!keller.length){ alert('Noch keine Artikel vorhanden.'); return; }
-  const kopf = 'Artikel;Kategorie;Platz;Bestand;Einheit;Mindestbestand;Notiz\n';
-  const zeilen = keller.map(a => [a.name, a.kat, a.platz, a.q, a.einheit, a.min,
-    String(a.notiz||'').replace(/;/g,',')].join(';')).join('\n');
-  lade(new Blob(['\ufeff'+kopf+zeilen], {type:'text/csv;charset=utf-8'}),
-       'Kellerlager_Geb30_'+datum()+'.csv');
-}
-
-function kellerSpeichern(){
-  zeichneKeller();
-  if(!cloudAktiv || !angemeldet || nurLesen()) return;
-  db.collection('stahllager').doc('keller').set({
-    artikel: keller, updatedAt: new Date().toISOString(),
-    updatedBy: el('benutzer').value.trim() || angemeldet.email, clientId
-  }).catch(e => cloudStatus('Speichern fehlgeschlagen: '+e.code, '#B3261E'));
-}
-
-el('hSuche').addEventListener('input', handySuche);
-['artSuche','artKat','artKnapp','artAlle'].forEach(id =>
-  el(id).addEventListener('input', zeichneArtikel));
-document.querySelectorAll('#eigentumKnoepfe button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#eigentumKnoepfe button').forEach(x => x.classList.remove('aktiv'));
-  b.classList.add('aktiv'); eigentumFilter = b.dataset.eig; zeichneArtikel();
-});
-document.querySelectorAll('#ansichtKnoepfe button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#ansichtKnoepfe button').forEach(x => x.classList.remove('aktiv'));
-  b.classList.add('aktiv'); ansichtArt = b.dataset.ansichtart; zeichneArtikel();
-});
-el('avUmfang').addEventListener('change', zeichneAVerbrauch);
-el('abUmfang').addEventListener('change', () => { korbBereichZeichnen(); meldeUebersichtZeichnen(); });
-document.querySelectorAll('#avZeit button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#avZeit button').forEach(x => x.classList.remove('aktiv'));
-  b.classList.add('aktiv'); avZeitraum = parseInt(b.dataset.zeit,10); zeichneAVerbrauch();
-});
-['kSuche','kKategorie','kNurKnapp'].forEach(id =>
-  el(id).addEventListener('input', zeichneKeller));
 
 /* ---------- Firebase ---------- */
 let db = null, fbAuth = null, cloudAktiv = false, angemeldet = null;
@@ -5614,7 +3156,7 @@ function cloudStatus(text, farbe){
 }
 
 function firebaseStarten(){
-  if(!FIREBASE_KONFIG.apiKey){ cloudStatus('Lokaler Modus', '#E4B23C'); standortWaehlen(); return; }
+  if(!FIREBASE_KONFIG.apiKey){ cloudStatus('Lokaler Modus', '#E4B23C'); return; }
   cloudStatus('verbinde &hellip;', '#E4B23C');
   const quellen = [
     'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
@@ -5646,7 +3188,7 @@ function firebaseBereit(){
         if(!el('benutzer').value.trim()) el('benutzer').value = nutzer.email.split('@')[0];
         cloudStatus('verbunden als '+nutzer.email, '#7ED957');
         datenLauschen();
-        if(!standort && !istTablet()) standortWaehlen();
+        ansichtOeffnen('plan');
       } else {
         angemeldet = null;
         cloudStatus('nicht angemeldet', '#E4B23C');
@@ -5699,7 +3241,6 @@ function datenLauschen(){
   // Zuerst die Rolle klaeren - danach nur abonnieren, was erlaubt ist
   db.collection('stahllager').doc('rollen').onSnapshot(sn => {
     rollenTabelle = (sn.exists && sn.data().tabelle) || {};
-    rollenOrte = (sn.exists && sn.data().orte) || {};
     if(sn.exists && sn.data().sperrcode) sperrcode = sn.data().sperrcode;
     codeZeichnen();
     const meine = rollenTabelle[(angemeldet.email||'').toLowerCase()] || 'admin';
@@ -5707,30 +3248,6 @@ function datenLauschen(){
     rollenZeichnen();
     if(!abosGestartet){ abosGestartet = true; abosStarten(); }
   }, () => { if(!abosGestartet){ abosGestartet = true; abosStarten(); } });
-
-  db.collection('stahllager').doc('firmen').onSnapshot(sn => {
-    if(sn.exists && sn.data().clientId !== clientId){
-      firmen = sn.data().liste || [];
-      if(!el('v-verwaltung').classList.contains('verstecke')) firmenZeichnen();
-    }
-  }, () => {});
-
-  db.collection('stahllager').doc('warenkorb').onSnapshot(sn => {
-    if(sn.exists){
-      const d = sn.data();
-      if(d.clientId !== clientId){
-        warenkorb = d.liste || [];
-        korbErinnert = d.erinnert || '';
-        korbAnzeigeAktualisieren();
-        if(!el('v-abanf').classList.contains('verstecke')) zeichneABanf();
-      }
-    }
-    korbErinnerungPruefen();
-  }, () => {});
-
-  db.collection('stahllager').doc('meldungen').onSnapshot(sn => {
-    if(sn.exists) meldungen = sn.data().stand || {};
-  }, () => {});
 
   db.collection('stahllager').doc('mail').onSnapshot(sn => {
     if(sn.exists) mailEinst = {...mailEinst, ...sn.data()};
@@ -5744,39 +3261,8 @@ function datenLauschen(){
 }
 
 function abosStarten(){
-  if(rolle !== 'tablet-keller') bestandLauschen();
-  if(rolle !== 'tablet-stahl')  artikelLauschen();
+  bestandLauschen();
   if(rolle === 'admin'){ archivLauschen(); backupsLauschen(); }
-}
-
-function artikelLauschen(){
-  db.collection('artikel').onSnapshot(s => {
-    artikel = [];
-    s.forEach(d => artikel.push(d.data()));
-    if(standort && standort !== 'stahl') zeichneArtikel();
-  }, e => cloudStatus('Artikel nicht lesbar: '+e.code, '#B3261E'));
-
-  db.collection('bestand').onSnapshot(s => {
-    bestand = {};
-    s.forEach(d => {
-      const b = d.data();
-      if(!b.ort || !b.nr) return;
-      bestand[b.ort] = bestand[b.ort] || {};
-      bestand[b.ort][b.nr] = {q:b.q||0, platz:b.platz||'', min:b.min||0};
-    });
-    if(standort && standort !== 'stahl') zeichneArtikel();
-  }, e => cloudStatus('Bestände nicht lesbar: '+e.code, '#B3261E'));
-}
-
-/* Bewegungen werden erst geladen, wenn die Verbrauchsansicht geöffnet wird.
-   Das spart bei jedem Seitenaufruf mehrere tausend Lesezugriffe. */
-let bewegungenGeladen = false;
-function bewegungenLaden(){
-  if(bewegungenGeladen || !cloudAktiv || !angemeldet) return Promise.resolve();
-  bewegungenGeladen = true;
-  return db.collection('bewegungen').orderBy('d','desc').limit(5000).get()
-    .then(s => { bewegungen = []; s.forEach(d => bewegungen.push(d.data())); })
-    .catch(() => {});
 }
 
 function bestandLauschen(){
@@ -5804,17 +3290,6 @@ function bestandLauschen(){
     }
     ersterEmpfang = false;
   }, () => cloudStatus('Verbindung unterbrochen', '#B3261E'));
-
-}
-
-function kellerLauschen(){
-  db.collection('stahllager').doc('keller').onSnapshot(sn => {
-    if(!sn.exists) return;
-    const d = sn.data();
-    if(d.clientId === clientId) return;
-    keller = d.artikel || [];
-    if(standort && standort !== 'stahl') zeichneArtikel();
-  }, () => {});
 
 }
 
