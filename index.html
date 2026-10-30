@@ -346,11 +346,19 @@ body.vollbild nav button.aktiv{border-bottom-color:var(--grau-linie);
 body.vollbild #vollbildLeiste{display:flex}
 body.vollbild main{padding-top:64px}
 body.vollbild .karte{margin-bottom:12px}
-.fab{position:fixed;right:18px;bottom:18px;z-index:70;background:var(--gruen);color:#fff;
+.fableiste{position:fixed;right:18px;bottom:18px;z-index:70;display:none;gap:12px}
+.fableiste.an{display:flex}
+.fab{background:var(--gruen);color:#fff;
   border:none;border-radius:40px;padding:17px 26px;font:inherit;font-size:16.5px;font-weight:600;
-  box-shadow:0 5px 18px rgba(0,0,0,.28);cursor:pointer;display:none;align-items:center;gap:9px}
+  box-shadow:0 5px 18px rgba(0,0,0,.28);cursor:pointer;display:flex;align-items:center;gap:9px}
 .fab:active{background:#4a8526}
+.fab.rein{background:var(--blau)}
+.fab.rein:active{background:var(--blau-dunkel)}
 .fab span{font-size:21px;line-height:1}
+@media(max-width:560px){
+  .fableiste{left:14px;right:14px;bottom:14px}
+  .fab{flex:1;justify-content:center;padding:16px 10px;font-size:15.5px}
+}
 .absuche{width:100%;font-size:17px;padding:13px}
 .abliste{max-height:46vh;overflow:auto;margin-top:12px}
 .abzeile{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;
@@ -990,7 +998,10 @@ body.vollbild .karte{margin-bottom:12px}
   <button onclick="standbyAn()" title="Sperren">&#128274; Sperren</button>
   <button class="raus" onclick="vollbildAus()" title="Vollbild verlassen">Vollbild beenden</button>
 </div>
-<button class="fab" id="fabAusbuchen" onclick="ausbuchen()"><span>&minus;</span> Ausbuchen</button>
+<div class="fableiste" id="fabLeiste">
+  <button class="fab rein" id="fabEinbuchen" onclick="einbuchen()"><span>+</span> Einbuchen</button>
+  <button class="fab" id="fabAusbuchen" onclick="ausbuchen()"><span>&minus;</span> Ausbuchen</button>
+</div>
 <div id="druck"></div>
 <footer>Stahllager 1 + 2 &nbsp;&middot;&nbsp; 98 F&auml;cher &nbsp;&middot;&nbsp; interne Anwendung</footer>
 
@@ -3064,17 +3075,35 @@ function zNurKleine(){
 function zaehlVerwerfen(){ csvDiff = null; el('zaehlErgebnis').innerHTML = ''; }
 
 /* ---------- Wareneingang ---------- */
+/* Am Tablet: erst den Namen klaeren, dann den Wareneingang oeffnen.
+   Damit steht bei jeder Einbuchung im Archiv, wer sie gemacht hat. */
+function einbuchen(){
+  if(nurLesen()) return alert('Dieser Zugang darf nichts buchen.');
+  if(!el('benutzer').value.trim()){ namenAbfragen(); return; }
+  wareneingang();
+}
+
+/* Bekannte Masse als Vorschlagsliste, damit am Tablet nicht getippt
+   werden muss, was schon im Lager liegt. */
+function massVorschlaege(){
+  return [...new Set(alleItems().map(i => i.m))]
+    .sort((a,b) => (breite(a)-breite(b)) || (dicke(a)-dicke(b)) || a.localeCompare(b))
+    .map(m => '<option value="'+m+'">').join('');
+}
+
 function wareneingang(){
   el('dialogBox').innerHTML =
     '<div class="overlay" onclick="if(event.target===this)schliesse()"><div class="dialog" style="max-width:620px">'+
     '<div class="kopf"><div><b>Wareneingang</b><span>&nbsp;Lieferung einbuchen</span></div>'+
     '<button class="zu" onclick="schliesse()">&times;</button></div>'+
     '<div class="rumpf">'+
-      '<p class="sub">Maß und gelieferte Stangen eintragen. Unbekannte Maße werden als neue '+
-      'Position angelegt, sobald du ein freies Fach zuweist.</p>'+
+      '<p class="sub">Ma&szlig; und gelieferte Stangen eintragen &ndash; das Ma&szlig;feld schl&auml;gt vor, '+
+      'was schon im Lager liegt. Unbekannte Ma&szlig;e kommen automatisch in ein freies Fach. '+
+      'Die Lieferscheinnummer landet mit im Archiv.</p>'+
       '<table class="edit"><thead><tr><th style="width:130px">Ma&szlig;</th>'+
       '<th style="width:100px">Stangen</th><th>Lieferschein / Notiz</th>'+
       '<th style="width:34px"></th></tr></thead><tbody id="weBody"></tbody></table>'+
+      '<datalist id="massListe">'+massVorschlaege()+'</datalist>'+
       '<div style="margin-top:12px"><button class="btn sek" onclick="weZeile()">+ Position</button></div>'+
       '<div id="wePruef"></div>'+
     '</div>'+
@@ -3086,11 +3115,15 @@ function wareneingang(){
 function weZeile(mass='', stk=''){
   const tr = document.createElement('tr');
   tr.innerHTML =
-    '<td><input type="text" class="weM" placeholder="40x12" value="'+mass+'"></td>'+
-    '<td><input type="number" class="weS" min="1" placeholder="10" value="'+stk+'"></td>'+
+    '<td><input type="text" class="weM" list="massListe" placeholder="40x12" '+
+      'value="'+mass+'" oninput="wePruefen()"></td>'+
+    '<td><input type="number" class="weS" min="1" inputmode="numeric" placeholder="10" '+
+      'value="'+stk+'" oninput="wePruefen()"></td>'+
     '<td><input type="text" class="weN" placeholder="optional"></td>'+
-    '<td><button class="mini" onclick="this.closest(\'tr\').remove()">&times;</button></td>';
+    '<td><button class="mini" onclick="this.closest(\'tr\').remove();wePruefen()">'+
+      '&times;</button></td>';
   el('weBody').appendChild(tr);
+  setTimeout(() => { const f = tr.querySelector('.weM'); if(f && !mass) f.focus(); }, 40);
 }
 function weLesen(){
   return [...document.querySelectorAll('#weBody tr')].map(tr => {
@@ -3193,7 +3226,7 @@ function sichtbarkeitSetzen(){
     e.style.display = (istTablet() || nurLesen()) ? 'none' : '';
   });
   el('leseBand').style.display = nurLesen() ? 'flex' : 'none';
-  el('fabAusbuchen').style.display = (istTablet() && !nurLesen()) ? 'flex' : 'none';
+  el('fabLeiste').classList.toggle('an', istTablet() && !nurLesen());
   // Am Tablet nur buchen, nicht umbauen
   const aus = istTablet() ? 'none' : '';
   ['btnWerkstoffGlobal','btnKellerCsv'].forEach(id => { const e = el(id); if(e) e.style.display = aus; });
